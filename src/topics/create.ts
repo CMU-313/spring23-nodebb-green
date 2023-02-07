@@ -244,6 +244,8 @@ export = function (Topics) {
         postData.timestampISO = utils.toISOString(postData.timestamp);
         postData.topic.title = String(postData.topic.title);
 
+        postData.resolved = false
+
         return postData;
     }
 
