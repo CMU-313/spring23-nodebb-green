@@ -92,6 +92,24 @@ module.exports = function (Topics) {
         return await toggleLock(tid, uid, false);
     };
 
+    async function resolved(tid, uid) {
+        const topicData = await Topics.getTopicFields(tid, ['tid', 'uid', 'cid']);
+        if (!topicData || !topicData.cid) {
+            throw new Error('[[error:no-topic]]');
+        }
+        const isAdminOrMod = await privileges.categories.isAdminOrMod(topicData.cid, uid);
+        if (!isAdminOrMod) {
+            throw new Error('[[error:no-privileges]]');
+        }
+        await Topics.setTopicField(tid, true);
+        // topicData.events = await Topics.events.log(tid, { type: lock ? 'lock' : 'unlock', uid });
+        // topicData.isLocked = lock; // deprecate in v2.0
+        topicData.resolved = true;
+
+        plugins.hooks.fire('action:topic.resolved', { topic: _.clone(topicData), uid: uid });
+        return topicData;
+    }
+
     async function toggleLock(tid, uid, lock) {
         const topicData = await Topics.getTopicFields(tid, ['tid', 'uid', 'cid']);
         if (!topicData || !topicData.cid) {

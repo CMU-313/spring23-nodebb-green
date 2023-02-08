@@ -104,11 +104,6 @@ function modifyTopic(topic, fields) {
 
     escapeTitle(topic);
 
-    // checks and assign value based on if topic is resolved or not
-    if (topic.hasOwnProperty('resolved')) {
-        topic.resolved = topic.resolved == true
-    }
-
     if (topic.hasOwnProperty('timestamp')) {
         topic.timestampISO = utils.toISOString(topic.timestamp);
         if (!fields.length || fields.includes('scheduled')) {
@@ -126,6 +121,11 @@ function modifyTopic(topic, fields) {
 
     if (topic.hasOwnProperty('upvotes') && topic.hasOwnProperty('downvotes')) {
         topic.votes = topic.upvotes - topic.downvotes;
+    }
+
+    // checks and assign value based on if topic is resolved or not
+    if (topic.hasOwnProperty('resolved')) {
+        topic.resolved = topic.resolved == 'true';
     }
 
     if (fields.includes('teaserPid') || !fields.length) {

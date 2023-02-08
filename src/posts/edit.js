@@ -30,7 +30,7 @@ module.exports = function (Posts) {
         }
 
         const topicData = await topics.getTopicFields(postData.tid, [
-            'cid', 'mainPid', 'title', 'timestamp', 'scheduled', 'slug', 'tags',
+            'cid', 'mainPid', 'title', 'timestamp', 'scheduled', 'slug', 'tags', 
         ]);
 
         await scheduledTopicCheck(data, topicData);
