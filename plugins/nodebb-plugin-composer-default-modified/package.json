@@ -5,7 +5,7 @@
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/NodeBB/nodebb-plugin-composer-default"
+    "url": "https://github.com/NodeBB/nodebb-plugin-composer-default-modified"
   },
   "scripts": {
     "lint": "eslint ."
