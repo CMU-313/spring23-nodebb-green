@@ -1,11 +1,11 @@
 {
-  "name": "nodebb-plugin-composer-default",
+  "name": "nodebb-plugin-composer-default-modified",
   "version": "9.2.4",
   "description": "Default composer for NodeBB",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/NodeBB/nodebb-plugin-composer-default"
+    "url": "https://github.com/NodeBB/nodebb-plugin-composer-default-modified"
   },
   "scripts": {
     "lint": "eslint ."
