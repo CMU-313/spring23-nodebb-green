@@ -470,6 +470,7 @@ define('composer', [
 				// 	text: 'Text Label',
 				// }
 			],
+			private: false,
 		};
 
 		if (data.mobile) {
@@ -832,6 +833,10 @@ define('composer', [
 
 		onHide();
 	};
+
+	composer.makePrivate = function (post_uuid) {
+		data.private = true;
+	}
 
 	composer.minimizeActive = function () {
 		if (composer.active) {
