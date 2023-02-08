@@ -29,7 +29,7 @@
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 
 -   [ ] I have written unit tests for my changes
--   [ ] My change requires a change to the README documentation
+-   [ ] My change requires a change to the documentation, which is located at [Autolab Docs](https://github.com/autolab/docs)
 -   [ ] I have updated the documentation accordingly, included in this PR
 
 ## Other issues / help required
