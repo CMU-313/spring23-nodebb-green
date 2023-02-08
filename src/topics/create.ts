@@ -1,6 +1,3 @@
-
-'use strict';
-
 import _ from 'lodash';
 
 import db from '../database';
@@ -15,7 +12,11 @@ import privileges from '../privileges';
 import categories from '../categories';
 import translator from '../translator';
 
-export = function (Topics) {
+export type TopicObject = {
+
+}
+
+module.exports = function (Topics: TopicObject) {
     Topics.create = async function (data) {
         // This is an internal method, consider using Topics.post instead
         const timestamp = data.timestamp || Date.now();

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -30,7 +30,8 @@ module.exports = function (Topics) {
             const timestamp = data.timestamp || Date.now();
             const tid = yield database_1.default.incrObjectField('global', 'nextTid');
             let topicData = {
-                // add a resolved field
+                // added a resolved field
+                resolved: data.resolved == null ? false : data.resolved,
                 tid: tid,
                 uid: data.uid,
                 cid: data.cid,
@@ -197,7 +198,9 @@ module.exports = function (Topics) {
             yield Topics.markAsRead([tid], uid);
             const [userInfo, topicInfo,] = yield Promise.all([
                 posts_1.default.getUserInfoForPosts([postData.uid], uid),
-                Topics.getTopicFields(tid, ['tid', 'uid', 'title', 'slug', 'cid', 'postcount', 'mainPid', 'scheduled']),
+                // get resolved field value
+
+                Topics.getTopicFields(tid, ['tid', 'uid', 'title', 'slug', 'cid', 'postcount', 'mainPid', 'scheduled', 'resolved']),
                 Topics.addParentPosts([postData]),
                 Topics.syncBacklinks(postData),
                 posts_1.default.parsePost(postData),
