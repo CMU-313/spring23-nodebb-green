@@ -31,7 +31,7 @@ module.exports = function (Topics) {
             lastposttime: 0,
             postcount: 0,
             viewcount: 0,
-            private: data.private == null ? false : data.private,
+            privateTopic: data.privateTopic == null ? false : data.privateTopic,
         };
 
         if (Array.isArray(data.tags) && data.tags.length) {
@@ -243,7 +243,7 @@ module.exports = function (Topics) {
                 'postcount',
                 'mainPid',
                 'scheduled',
-                'private',
+                'privateTopic',
             ]),
             Topics.addParentPosts([postData]),
             Topics.syncBacklinks(postData),

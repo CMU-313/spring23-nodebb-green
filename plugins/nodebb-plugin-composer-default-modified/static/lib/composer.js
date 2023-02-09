@@ -206,6 +206,7 @@ define('composer', [
 			tags: data.tags || [],
 			modified: !!((data.title && data.title.length) || (data.body && data.body.length)),
 			isMain: true,
+			privatTopice: data.privateTopic || false,
 		};
 
 		({ pushData } = await hooks.fire('filter:composer.topic.push', {
@@ -470,7 +471,7 @@ define('composer', [
 				// 	text: 'Text Label',
 				// }
 			],
-			private: false,
+			privateTopic: postData.privateTopic,
 		};
 
 		if (data.mobile) {
@@ -632,6 +633,7 @@ define('composer', [
 		var thumbEl = postContainer.find('input#topic-thumb-url');
 		var onComposeRoute = postData.hasOwnProperty('template') && postData.template.compose === true;
 		const submitBtn = postContainer.find('.composer-submit');
+		var privateEl = postContainer.find('.privateTopic');
 
 		titleEl.val(titleEl.val().trim());
 		bodyEl.val(utils.rtrim(bodyEl.val()));
@@ -697,6 +699,7 @@ define('composer', [
 				cid: categoryList.getSelectedCid(),
 				tags: tags.getTags(post_uuid),
 				timestamp: scheduler.getTimestamp(),
+				privateTopic: privateEl.is(':checked'),
 			};
 		} else if (action === 'posts.reply') {
 			route = `/topics/${postData.tid}`;
@@ -833,10 +836,6 @@ define('composer', [
 
 		onHide();
 	};
-
-	composer.makePrivate = function (post_uuid) {
-		data.private = true;
-	}
 
 	composer.minimizeActive = function () {
 		if (composer.active) {

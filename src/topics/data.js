@@ -137,8 +137,8 @@ function modifyTopic(topic, fields) {
         topic.votes = topic.upvotes - topic.downvotes;
     }
 
-    if (topic.hasOwnProperty('private')) {
-        topic.private = topic.private === 'true';
+    if (topic.hasOwnProperty('privateTopic')) {
+        topic.privateTopic = topic.privateTopic === 'true';
     }
 
     if (fields.includes('teaserPid') || !fields.length) {
