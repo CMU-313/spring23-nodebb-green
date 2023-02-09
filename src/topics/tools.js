@@ -87,11 +87,9 @@ module.exports = function (Topics) {
     topicTools.lock = async function (tid, uid) {
         return await toggleLock(tid, uid, true);
     };
-    
     topicTools.unlock = async function (tid, uid) {
         return await toggleLock(tid, uid, false);
     };
-    
     topicTools.resolve = async function (tid, uid) {
         return await resolve(tid, uid, true);
     };
