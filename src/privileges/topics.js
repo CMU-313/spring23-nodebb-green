@@ -47,7 +47,7 @@ privsTopics.get = async function (tid, uid) {
         'posts:view_deleted': privData['posts:view_deleted'] || isAdministrator,
         read: privData.read || isAdministrator,
         purge: (privData.purge && (isOwner || isModerator)) || isAdministrator,
-        can_resolve: isAdminOrMod || isOwner || privData['topics:resolved'],
+        can_resolve: isAdminOrMod || isOwner,
         view_thread_tools: editable || deletable,
         editable: editable,
         deletable: deletable,
