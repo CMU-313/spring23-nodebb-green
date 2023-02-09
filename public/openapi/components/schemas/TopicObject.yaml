@@ -158,7 +158,7 @@ TopicObject:
           type: boolean
         unread:
           type: boolean
-        resolved:
+        resolve:
           type: boolean
         bookmark:
           nullable: true

@@ -124,8 +124,8 @@ function modifyTopic(topic, fields) {
     }
 
     // checks and assign value based on if topic is resolved or not
-    if (topic.hasOwnProperty('resolved')) {
-        topic.resolved = topic.resolved == 'true';
+    if (topic.hasOwnProperty('resolve')) {
+        topic.resolve = topic.resolve === 'true';
     }
 
     if (fields.includes('teaserPid') || !fields.length) {

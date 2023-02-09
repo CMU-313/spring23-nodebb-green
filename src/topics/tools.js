@@ -87,12 +87,16 @@ module.exports = function (Topics) {
     topicTools.lock = async function (tid, uid) {
         return await toggleLock(tid, uid, true);
     };
-
+    
     topicTools.unlock = async function (tid, uid) {
         return await toggleLock(tid, uid, false);
     };
+    
+    topicTools.resolve = async function (tid, uid) {
+        return await resolve(tid, uid, true);
+    };
 
-    async function resolved(tid, uid) {
+    async function resolve(tid, uid) {
         const topicData = await Topics.getTopicFields(tid, ['tid', 'uid', 'cid']);
         if (!topicData || !topicData.cid) {
             throw new Error('[[error:no-topic]]');
@@ -104,9 +108,9 @@ module.exports = function (Topics) {
         await Topics.setTopicField(tid, true);
         // topicData.events = await Topics.events.log(tid, { type: lock ? 'lock' : 'unlock', uid });
         // topicData.isLocked = lock; // deprecate in v2.0
-        topicData.resolved = true;
+        topicData.resolve = true;
 
-        plugins.hooks.fire('action:topic.resolved', { topic: _.clone(topicData), uid: uid });
+        plugins.hooks.fire('action:topic.resolve', { topic: _.clone(topicData), uid: uid });
         return topicData;
     }
 
