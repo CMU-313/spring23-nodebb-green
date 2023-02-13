@@ -170,6 +170,8 @@ module.exports = function (Categories) {
                 topic.noAnchor = true;
                 topic.tags = [];
             }
+
+            topic.viewable = !topic.privateTopic || topic.isOwner || privileges.isAdminOrMod;
         });
     };
 
