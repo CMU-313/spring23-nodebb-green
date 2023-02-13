@@ -1,3 +1,4 @@
+
 'use strict';
 
 const _ = require('lodash');
@@ -20,6 +21,7 @@ module.exports = function (Topics) {
         const timestamp = data.timestamp || Date.now();
 
         const tid = await db.incrObjectField('global', 'nextTid');
+
         let topicData = {
             tid: tid,
             uid: data.uid,
@@ -38,10 +40,7 @@ module.exports = function (Topics) {
             topicData.tags = data.tags.join(',');
         }
 
-        const result = await plugins.hooks.fire('filter:topic.create', {
-            topic: topicData,
-            data: data,
-        });
+        const result = await plugins.hooks.fire('filter:topic.create', { topic: topicData, data: data });
         topicData = result.topic;
         await db.setObject(`topic:${topicData.tid}`, topicData);
 
@@ -58,18 +57,12 @@ module.exports = function (Topics) {
 
         await Promise.all([
             db.sortedSetsAdd(timestampedSortedSetKeys, timestamp, topicData.tid),
-            db.sortedSetsAdd(
-                [
-                    'topics:views',
-                    'topics:posts',
-                    'topics:votes',
-                    `cid:${topicData.cid}:tids:votes`,
-                    `cid:${topicData.cid}:tids:posts`,
-                    `cid:${topicData.cid}:tids:views`,
-                ],
-                0,
-                topicData.tid
-            ),
+            db.sortedSetsAdd([
+                'topics:views', 'topics:posts', 'topics:votes',
+                `cid:${topicData.cid}:tids:votes`,
+                `cid:${topicData.cid}:tids:posts`,
+                `cid:${topicData.cid}:tids:views`,
+            ], 0, topicData.tid),
             user.addTopicIdToUser(topicData.uid, topicData.tid, timestamp),
             db.incrObjectField(`category:${topicData.cid}`, 'topic_count'),
             db.incrObjectField('global', 'topicCount'),
@@ -79,10 +72,8 @@ module.exports = function (Topics) {
         if (scheduled) {
             await Topics.scheduled.pin(tid, topicData);
         }
-        plugins.hooks.fire('action:topic.save', {
-            topic: _.clone(topicData),
-            data: data,
-        });
+
+        plugins.hooks.fire('action:topic.save', { topic: _.clone(topicData), data: data });
         return topicData.tid;
     };
 
@@ -153,11 +144,7 @@ module.exports = function (Topics) {
         }
 
         analytics.increment(['topics', `topics:byCid:${topicData.cid}`]);
-        plugins.hooks.fire('action:topic.post', {
-            topic: topicData,
-            post: postData,
-            data: data,
-        });
+        plugins.hooks.fire('action:topic.post', { topic: topicData, post: postData, data: data });
 
         if (parseInt(uid, 10) && !topicData.scheduled) {
             user.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
@@ -219,10 +206,7 @@ module.exports = function (Topics) {
         }
 
         analytics.increment(['posts', `posts:byCid:${data.cid}`]);
-        plugins.hooks.fire('action:topic.reply', {
-            post: _.clone(postData),
-            data: data,
-        });
+        plugins.hooks.fire('action:topic.reply', { post: _.clone(postData), data: data });
 
         return postData;
     };
@@ -232,7 +216,10 @@ module.exports = function (Topics) {
         const { uid } = postData;
         await Topics.markAsUnreadForAll(tid);
         await Topics.markAsRead([tid], uid);
-        const [userInfo, topicInfo] = await Promise.all([
+        const [
+            userInfo,
+            topicInfo,
+        ] = await Promise.all([
             posts.getUserInfoForPosts([postData.uid], uid),
             Topics.getTopicFields(tid, [
                 'tid',
@@ -270,23 +257,11 @@ module.exports = function (Topics) {
     }
 
     Topics.checkTitle = function (title) {
-        check(
-            title,
-            meta.config.minimumTitleLength,
-            meta.config.maximumTitleLength,
-            'title-too-short',
-            'title-too-long'
-        );
+        check(title, meta.config.minimumTitleLength, meta.config.maximumTitleLength, 'title-too-short', 'title-too-long');
     };
 
     Topics.checkContent = function (content) {
-        check(
-            content,
-            meta.config.minimumPostLength,
-            meta.config.maximumPostLength,
-            'content-too-short',
-            'content-too-long'
-        );
+        check(content, meta.config.minimumPostLength, meta.config.maximumPostLength, 'content-too-short', 'content-too-long');
     };
 
     function check(item, min, max, minError, maxError) {
