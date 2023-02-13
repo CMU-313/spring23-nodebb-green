@@ -158,7 +158,7 @@ TopicObject:
           type: boolean
         unread:
           type: boolean
-        private:
+        privateTopic:
           type: boolean
         bookmark:
           nullable: true
