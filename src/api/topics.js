@@ -113,7 +113,7 @@ topicsAPI.restore = async function (caller, data) {
 
 // added resolve function API
 topicsAPI.resolve = async function (caller, data) {
-    await doTopicAction('resolve', 'event:topic_resolve', caller, {
+    await doTopicAction('resolve', 'event:topic_resolved', caller, {
         tids: data.tids,
     });
 };
