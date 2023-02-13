@@ -57,40 +57,52 @@
         </div>
         <!-- ENDIF merger -->
 
-        {{{ if !scheduled }}}
-        <!-- IMPORT partials/topic/deleted-message.tpl -->
-        {{{ end }}}
+        <!-- IF !privileges.viewable --> 
+            <div component="topic/merged/message" class="alert alert-warning clearfix">
+                <span class="pull-left">Sorry you do not have access to this...</span>
+                <span class="pull-right">
+                    <a href="{config.relative_path}/user/{merger.userslug}">
+                        <strong>{merger.username}</strong>
+                    </a>
+                    <small class="timeago" title="{mergedTimestampISO}"></small>
+                </span>
+            </div>
+        <!-- ELSE -->
+            {{{ if !scheduled }}}
+            <!-- IMPORT partials/topic/deleted-message.tpl -->
+            {{{ end }}}
 
-        <ul component="topic" class="posts timeline" data-tid="{tid}" data-cid="{cid}">
-            {{{each posts}}}
-                <li component="post" class="{{{ if posts.deleted }}}deleted{{{ end }}} {{{ if posts.selfPost }}}self-post{{{ end }}} {{{ if posts.topicOwnerPost }}}topic-owner-post{{{ end }}}" <!-- IMPORT partials/data/topic.tpl -->>
-                    <a component="post/anchor" data-index="{posts.index}" id="{posts.index}"></a>
+            <ul component="topic" class="posts timeline" data-tid="{tid}" data-cid="{cid}">
+                {{{each posts}}}
+                    <li component="post" class="{{{ if posts.deleted }}}deleted{{{ end }}} {{{ if posts.selfPost }}}self-post{{{ end }}} {{{ if posts.topicOwnerPost }}}topic-owner-post{{{ end }}}" <!-- IMPORT partials/data/topic.tpl -->>
+                        <a component="post/anchor" data-index="{posts.index}" id="{posts.index}"></a>
 
-                    <meta itemprop="datePublished" content="{posts.timestampISO}">
-                    <meta itemprop="dateModified" content="{posts.editedISO}">
+                        <meta itemprop="datePublished" content="{posts.timestampISO}">
+                        <meta itemprop="dateModified" content="{posts.editedISO}">
 
-                    <!-- IMPORT partials/topic/post.tpl -->
-                </li>
-                {renderTopicEvents(@index, config.topicPostSort)}
-            {{{end}}}
-        </ul>
+                        <!-- IMPORT partials/topic/post.tpl -->
+                    </li>
+                    {renderTopicEvents(@index, config.topicPostSort)}
+                {{{end}}}
+            </ul>
 
-        {{{ if browsingUsers }}}
-        <div class="visible-xs">
-            <!-- IMPORT partials/topic/browsing-users.tpl -->
-            <hr/>
-        </div>
-        {{{ end }}}
+            {{{ if browsingUsers }}}
+            <div class="visible-xs">
+                <!-- IMPORT partials/topic/browsing-users.tpl -->
+                <hr/>
+            </div>
+            {{{ end }}}
 
-        <!-- IF config.enableQuickReply -->
-        <!-- IMPORT partials/topic/quickreply.tpl -->
-        <!-- ENDIF config.enableQuickReply -->
+            <!-- IF config.enableQuickReply -->
+            <!-- IMPORT partials/topic/quickreply.tpl -->
+            <!-- ENDIF config.enableQuickReply -->
 
-        <!-- IF config.usePagination -->
-        <!-- IMPORT partials/paginator.tpl -->
-        <!-- ENDIF config.usePagination -->
+            <!-- IF config.usePagination -->
+            <!-- IMPORT partials/paginator.tpl -->
+            <!-- ENDIF config.usePagination -->
 
-        <!-- IMPORT partials/topic/navigator.tpl -->
+            <!-- IMPORT partials/topic/navigator.tpl -->
+        <!-- ENDIF !privileges.viewable --> 
     </div>
     <div data-widget-area="sidebar" class="col-lg-3 col-sm-12 <!-- IF !widgets.sidebar.length -->hidden<!-- ENDIF !widgets.sidebar.length -->">
         {{{each widgets.sidebar}}}
