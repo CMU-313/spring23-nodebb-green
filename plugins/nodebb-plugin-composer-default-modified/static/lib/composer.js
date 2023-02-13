@@ -87,17 +87,13 @@ define('composer', [
 			resize.reposition($('.composer[data-uuid="' + composer.active + '"]'));
 
 			if (!isMobile && window.location.pathname.startsWith(config.relative_path + '/compose')) {
-				/*
-				 *	If this conditional is met, we're no longer in mobile/tablet
-				 *	resolution but we've somehow managed to have a mobile
-				 *	composer load, so let's go back to the topic
-				 */
+				/* If this conditional is met, we're no longer in mobile/tablet
+				resolution but we've somehow managed to have a mobile
+				composer load, so let's go back to the topic */
 				history.back();
 			} else if (isMobile && !window.location.pathname.startsWith(config.relative_path + '/compose')) {
-				/*
-				 *	In this case, we're in mobile/tablet resolution but the composer
-				 *	that loaded was a regular composer, so let's fix the address bar
-				 */
+				/* In this case, we're in mobile/tablet resolution but the composer
+				that loaded was a regular composer, so let's fix the address bar */
 				mobileHistoryAppend();
 			}
 		}
@@ -343,8 +339,8 @@ define('composer', [
 
 		submitBtn.on('click', function (e) {
 			e.preventDefault();
-			e.stopPropagation();	// Other click events bring composer back to active state which is undesired on submit
-
+			e.stopPropagation();
+			// Other click events bring composer back to active state which is undesired on submit
 			$(this).attr('disabled', true);
 			post(post_uuid);
 		});
@@ -465,11 +461,11 @@ define('composer', [
 			privileges: app.user.privileges,
 			selectedCategory: postData.category,
 			submitOptions: [
-				// Add items using `filter:composer.create`, or just add them to the <ul> in DOM
-				// {
-				// 	action: 'foobar',
-				// 	text: 'Text Label',
-				// }
+				/* Add items using `filter:composer.create`, or just add them to the <ul> in DOM
+				{
+					action: 'foobar',
+					text: 'Text Label',
+				} */
 			],
 			privateTopic: postData.privateTopic,
 		};
