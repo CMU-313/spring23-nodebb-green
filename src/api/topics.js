@@ -111,6 +111,13 @@ topicsAPI.restore = async function (caller, data) {
     });
 };
 
+// added resolve function API
+topicsAPI.resolve = async function (caller, data) {
+    await doTopicAction('resolve', 'event:topic_resolved', caller, {
+        tids: data.tids,
+    });
+};
+
 topicsAPI.purge = async function (caller, data) {
     await doTopicAction('purge', 'event:topic_purged', caller, {
         tids: data.tids,

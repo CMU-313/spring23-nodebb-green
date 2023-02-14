@@ -64,6 +64,7 @@ define('forum/topic', [
         addPostsPreviewHandler();
 
         handleBookmark(tid);
+        handleResolve(tid);
 
         $(window).on('scroll', utils.debounce(updateTopicTitle, 250));
 
@@ -71,6 +72,15 @@ define('forum/topic', [
 
         hooks.fire('action:topic.loaded', ajaxify.data);
     };
+
+    function handleResolve(tid) {
+        $('[component="topic/resolve"]')[0].addEventListener('click', function () {
+            console.log('clicked');
+            api.put(`/topics/${tid}/resolve`).then((res) => {
+                console.log('hi', res);
+            });
+        });
+    }
 
     function handleTopicSearch() {
         require(['mousetrap'], (mousetrap) => {

@@ -16,5 +16,10 @@
     <div class="inline-block">
     <!-- IMPORT partials/thread_tools.tpl -->
     </div>
+    <!-- IF privileges.resolveable -->
+    <button component="topic/resolve" class="btn btn-sm btn-default" type="button">
+        Resolve
+    </button>
+    <!-- ENDIF privileges.resolveable -->
     <!-- IMPORT partials/topic/reply-button.tpl -->
 </div>

@@ -158,6 +158,8 @@ TopicObject:
           type: boolean
         unread:
           type: boolean
+        resolve:
+          type: boolean
         privateTopic:
           type: boolean
         bookmark:

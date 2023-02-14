@@ -29,6 +29,8 @@ define('forum/topic/events', [
         'event:topic_pinned': threadTools.setPinnedState,
         'event:topic_unpinned': threadTools.setPinnedState,
 
+        'event:topic_resolved': onTopicResolved,
+
         'event:topic_moved': onTopicMoved,
 
         'event:post_edited': onPostEdited,
@@ -98,6 +100,10 @@ define('forum/topic/events', [
         if (data && data.slug && parseInt(data.tid, 10) === parseInt(ajaxify.data.tid, 10)) {
             ajaxify.go('topic/' + data.slug, null, true);
         }
+    }
+
+    function onTopicResolved(data) {
+        console.log(data);
     }
 
     function onPostEdited(data) {
