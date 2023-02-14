@@ -22,4 +22,5 @@ put:
               status:
                 $ref: ../../../components/schemas/Status.yaml#/Status
               response:
-                $ref: ../../components/schemas/TopicObject.yaml#/TopicObjectSlim
+                type: object
+                properties: {}
