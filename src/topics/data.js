@@ -128,11 +128,6 @@ function modifyTopic(topic, fields) {
         topic.votes = topic.upvotes - topic.downvotes;
     }
 
-    // checks and assign value based on if topic is resolved or not
-    if (topic.hasOwnProperty('resolve')) {
-        topic.resolve = topic.resolve === 'true';
-    }
-
     if (fields.includes('teaserPid') || !fields.length) {
         topic.teaserPid = topic.teaserPid || null;
     }

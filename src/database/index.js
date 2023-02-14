@@ -23,7 +23,7 @@ primaryDB.parseIntFields = function (data, intFields, requestedFields) {
 primaryDB.parseBooleanFields = function (data, booleanFields, requestedFields) {
     booleanFields.forEach((field) => {
         if (!requestedFields || !requestedFields.length || requestedFields.includes(field)) {
-            data[field] = data[field] === 'true';
+            data[field] = (typeof data[field] === 'boolean' && data[field]) || data[field] === 'true';
         }
     });
 };
