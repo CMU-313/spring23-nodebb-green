@@ -58,7 +58,7 @@ Topics.delete = async (req, res) => {
 
 // added resolved field
 Topics.resolve = async (req, res) => {
-    await topics.tools.resolve(req.uid, req.params.tid);
+    await topics.tools.resolve(req.params.tid, req.uid);
     helpers.formatApiResponse(200, res);
 };
 
