@@ -33,7 +33,11 @@ module.exports = function (Topics) {
             lastposttime: 0,
             postcount: 0,
             viewcount: 0,
+<<<<<<< HEAD
             resolve: false,
+=======
+            privateTopic: data.privateTopic == null ? false : data.privateTopic,
+>>>>>>> main
         };
 
         if (Array.isArray(data.tags) && data.tags.length) {
@@ -221,7 +225,18 @@ module.exports = function (Topics) {
             topicInfo,
         ] = await Promise.all([
             posts.getUserInfoForPosts([postData.uid], uid),
-            Topics.getTopicFields(tid, ['tid', 'uid', 'title', 'slug', 'cid', 'postcount', 'mainPid', 'scheduled', 'resolve']),
+            Topics.getTopicFields(tid, [
+                'tid',
+                'uid',
+                'title',
+                'slug',
+                'cid',
+                'postcount',
+                'mainPid',
+                'scheduled',
+                'privateTopic',
+                'resolve',
+            ]),
             Topics.addParentPosts([postData]),
             Topics.syncBacklinks(postData),
             posts.parsePost(postData),

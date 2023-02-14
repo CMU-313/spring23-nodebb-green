@@ -160,6 +160,8 @@ TopicObject:
           type: boolean
         resolve:
           type: boolean
+        privateTopic:
+          type: boolean
         bookmark:
           nullable: true
           type: number

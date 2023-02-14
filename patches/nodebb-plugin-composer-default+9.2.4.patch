@@ -1,0 +1,182 @@
+diff --git a/node_modules/nodebb-plugin-composer-default/static/less/composer.less b/node_modules/nodebb-plugin-composer-default/static/less/composer.less
+index e9a8ca6..b177c45 100644
+--- a/node_modules/nodebb-plugin-composer-default/static/less/composer.less
++++ b/node_modules/nodebb-plugin-composer-default/static/less/composer.less
+@@ -53,10 +53,11 @@
+ 			overflow: hidden;
+ 			white-space: nowrap;
+ 			flex-grow: 2;
+-			font-size: 16px;
++			font-size: 12px;
+ 			line-height: inherit;
+ 			padding: 9px 5px;
+ 			margin: 0;
++			align-items: center;
+ 		}
+ 	}
+ 
+@@ -77,7 +78,7 @@
+ 			display: block;
+ 			margin: 0;
+ 			padding: 8px;
+-			font-size: 18px;
++			font-size: 12px;
+ 			border: 0;
+ 			.box-shadow(none);
+ 			overflow: hidden;
+@@ -115,6 +116,78 @@
+ 				}
+ 			}
+ 		}
++		.privateSwitch {
++			display: flex;
++			align-items: center;
++			margin-right: 1em;
++			height: 42px;
++		}
++
++		/* toggle switch css copied from W3Schools
++			https://www.w3schools.com/howto/howto_css_switch.asp */
++		.switch {
++			position: relative;
++			display: inline-block;
++			width: 42px;
++			height: 24px;
++			margin-left: 0.5em;
++			top: 3px;
++		}
++
++		/* Hide default HTML checkbox */
++		.switch input {
++			opacity: 0;
++			width: 0;
++			height: 0;
++		}
++
++		/* The slider */
++		.slider {
++			position: absolute;
++			cursor: pointer;
++			top: 0;
++			left: 0;
++			right: 0;
++			bottom: 0;
++			background-color: #ccc;
++			-webkit-transition: .4s;
++			transition: .4s;
++		}
++
++		.slider:before {
++			position: absolute;
++			content: "";
++			height: 18px;
++			width: 18px;
++			left: 3px;
++			bottom: 3px;
++			background-color: white;
++			-webkit-transition: .4s;
++			transition: .4s;
++		}
++
++		input:checked + .slider {
++			background-color: #428bca;
++		}
++
++		input:focus + .slider {
++			box-shadow: 0 0 1px #428bca;
++		}
++
++		input:checked + .slider:before {
++			-webkit-transform: translateX(18px);
++			-ms-transform: translateX(18px);
++			transform: translateX(18px);
++		}
++
++		/* Rounded sliders */
++		.slider.round {
++			border-radius: 24px;
++		}
++
++		.slider.round:before {
++			border-radius: 50%;
++		}
+ 	}
+ 
+ 	.display-scheduler {
+@@ -281,7 +354,7 @@
+ 			overflow: auto;
+ 
+ 			input {
+-				font-size: 16px;
++				font-size: 12px;
+ 				width: 50%;
+ 				height: 28px;
+ 				padding: 4px 6px;
+@@ -289,7 +362,8 @@
+ 
+ 			.label {
+ 				color: white;
+-				font-size: 13px;
++				font-size: 12px;
++				font-weight: 600;
+ 			}
+ 		}
+ 	}
+diff --git a/node_modules/nodebb-plugin-composer-default/static/lib/composer.js b/node_modules/nodebb-plugin-composer-default/static/lib/composer.js
+index 46334e7..c62828d 100644
+--- a/node_modules/nodebb-plugin-composer-default/static/lib/composer.js
++++ b/node_modules/nodebb-plugin-composer-default/static/lib/composer.js
+@@ -464,12 +464,13 @@ define('composer', [
+ 			privileges: app.user.privileges,
+ 			selectedCategory: postData.category,
+ 			submitOptions: [
+-				// Add items using `filter:composer.create`, or just add them to the <ul> in DOM
+-				// {
+-				// 	action: 'foobar',
+-				// 	text: 'Text Label',
+-				// }
++			/* Add items using `filter:composer.create`, or just add them to the <ul> in DOM
++				{
++					action: 'foobar',
++					text: 'Text Label',
++				} */
+ 			],
++			privateTopic: postData.privateTopic,
+ 		};
+ 
+ 		if (data.mobile) {
+@@ -631,6 +632,7 @@ define('composer', [
+ 		var thumbEl = postContainer.find('input#topic-thumb-url');
+ 		var onComposeRoute = postData.hasOwnProperty('template') && postData.template.compose === true;
+ 		const submitBtn = postContainer.find('.composer-submit');
++		var privateEl = postContainer.find('.privateTopic');
+ 
+ 		titleEl.val(titleEl.val().trim());
+ 		bodyEl.val(utils.rtrim(bodyEl.val()));
+@@ -696,6 +698,7 @@ define('composer', [
+ 				cid: categoryList.getSelectedCid(),
+ 				tags: tags.getTags(post_uuid),
+ 				timestamp: scheduler.getTimestamp(),
++				privateTopic: privateEl.is(':checked'),
+ 			};
+ 		} else if (action === 'posts.reply') {
+ 			route = `/topics/${postData.tid}`;
+diff --git a/node_modules/nodebb-plugin-composer-default/static/templates/composer.tpl b/node_modules/nodebb-plugin-composer-default/static/templates/composer.tpl
+index cf9de24..ac66c8c 100644
+--- a/node_modules/nodebb-plugin-composer-default/static/templates/composer.tpl
++++ b/node_modules/nodebb-plugin-composer-default/static/templates/composer.tpl
+@@ -50,7 +50,13 @@
+ 			<div class="display-scheduler pull-right hidden-sm hidden-xs{{{ if !canSchedule }}} hidden{{{ end }}}">
+ 				<i class="fa fa-clock-o"></i>
+ 			</div>
+-
++			<div class="privateSwitch">
++				Private
++				<label class="switch">
++						<input type="checkbox" class="privateTopic">
++						<span class="slider round"></span>
++				</label>
++			</div>
+ 			<div class="btn-group pull-right action-bar hidden-sm hidden-xs">
+ 				<button class="btn btn-default composer-discard" data-action="discard" tabindex="-1"><i class="fa fa-times"></i> [[topic:composer.discard]]</button>
+ 

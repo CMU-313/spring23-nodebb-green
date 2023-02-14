@@ -58,6 +58,7 @@ privsTopics.get = async function (tid, uid) {
         tid: tid,
         uid: uid,
         resolveable: isAdminOrMod || isOwner,
+        viewable: isAdminOrMod || isOwner || !topicData.privateTopic,
     });
 };
 
