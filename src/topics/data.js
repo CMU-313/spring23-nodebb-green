@@ -16,7 +16,7 @@ const intFields = [
 ];
 
 const booleanFields = [
-    'resolve',
+    'resolve', 'privateTopic',
 ];
 
 module.exports = function (Topics) {
@@ -128,9 +128,6 @@ function modifyTopic(topic, fields) {
         topic.votes = topic.upvotes - topic.downvotes;
     }
 
-    if (topic.hasOwnProperty('privateTopic')) {
-        topic.privateTopic = topic.privateTopic === 'true';
-    }
     if (fields.includes('teaserPid') || !fields.length) {
         topic.teaserPid = topic.teaserPid || null;
     }
