@@ -11,6 +11,7 @@ const translator = require('../translator');
 
 module.exports = function (Posts) {
     const votesInProgress = {};
+
     Posts.upvote = async function (pid, uid) {
         if (meta.config['reputation:disabled']) {
             throw new Error('[[error:reputation-system-disabled]]');
