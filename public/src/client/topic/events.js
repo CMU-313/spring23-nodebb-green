@@ -11,7 +11,8 @@ define('forum/topic/events', [
     'translator',
     'benchpress',
     'hooks',
-], function (postTools, threadTools, posts, images, components, translator, Benchpress, hooks) {
+    'api',
+], function (postTools, threadTools, posts, images, components, translator, Benchpress, hooks, api) {
     const Events = {};
 
     const events = {
@@ -57,6 +58,13 @@ define('forum/topic/events', [
                 socket.on(eventName, events[eventName]);
             }
         }
+
+        $('[component="topic/resolve"]')[0].addEventListener('click', function () {
+            console.log('clicked');
+            api.put(`/topics/${ajaxify.data.tid}/resolve`).then((res) => {
+                console.log('hi', res);
+            });
+        });
     };
 
     Events.removeListeners = function () {
