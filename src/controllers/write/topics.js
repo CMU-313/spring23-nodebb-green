@@ -1,11 +1,13 @@
 'use strict';
 
 const validator = require('validator');
+const _ = require('lodash');
 
 const db = require('../../database');
 const api = require('../../api');
 const topics = require('../../topics');
 const privileges = require('../../privileges');
+const plugins = require('../../plugins');
 
 const helpers = require('../helpers');
 const middleware = require('../../middleware');
@@ -58,9 +60,26 @@ Topics.delete = async (req, res) => {
 
 // added resolved field
 Topics.resolve = async (req, res) => {
-    await topics.tools.resolve(req.params.tid, req.uid);
+    await resolve(req.params.tid, req.uid);
     helpers.formatApiResponse(200, res);
 };
+
+async function resolve(tid, uid) {
+    const topicData = await topics.getTopicFields(tid, ['tid', 'uid', 'cid']);
+    if (!topicData || !topicData.cid) {
+        throw new Error('[[error:no-topic]]');
+    }
+    const isOwnerOrAdminOrMod = await privileges.topics.isOwnerOrAdminOrMod(tid, uid);
+    if (!isOwnerOrAdminOrMod) {
+        throw new Error('[[error:no-privileges]]');
+    }
+    await topics.setTopicField(tid, 'resolve', true);
+
+    topicData.resolve = true;
+
+    plugins.hooks.fire('action:topic.resolve', { topic: _.clone(topicData), uid: uid });
+    return topicData;
+}
 
 Topics.restore = async (req, res) => {
     await api.topics.restore(req, { tids: [req.params.tid] });
