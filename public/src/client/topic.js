@@ -77,7 +77,7 @@ define('forum/topic', [
         $('[component="topic/resolve"]')[0].addEventListener('click', function () {
             console.log('clicked');
             api.put(`/topics/${tid}/resolve`).then((res) => {
-                console.log('hi', res);
+                location.reload();
             });
         });
     }
