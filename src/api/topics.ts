@@ -12,10 +12,31 @@ import socketHelpers = require('../socket.io/helpers');
 
 const { doTopicAction } = apiHelpers;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-const topicsAPI = module.exports;
+// const topicsAPI = module.exports;
+
+type Session = {
+    lastChatMessageTime: number
+}
+
+type Caller = {
+    request: Request,
+    session: Session,
+    uid: number,
+    ip: string,
+}
+
+type Data = {
+    // uids: string[],
+    // roomId: number,
+    // message: string,
+    // name: string,
+    tid: string,
+    payload: any,
+    timestamp: string
+}
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.get = async function (caller, data) {
+export async function get(caller: Caller, data: Data) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const [userPrivileges, topic] = await Promise.all([
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -40,7 +61,7 @@ topicsAPI.get = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.create = async function (caller, data) {
+export async function create(caller: Caller, data: Data) {
     if (!data) {
         throw new Error('[[error:invalid-data]]');
     }
@@ -88,7 +109,7 @@ topicsAPI.create = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.reply = async function (caller, data) {
+export async function reply(caller: Caller, data: Data) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     if (!data || !data.tid || (meta.config.minimumPostLength !== 0 && !data.content)) {
         throw new Error('[[error:invalid-data]]');
@@ -139,7 +160,7 @@ topicsAPI.reply = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.delete = async function (caller, data) {
+export async function del(caller: Caller, data: Data) {
     await doTopicAction('delete', 'event:topic_deleted', caller, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         tids: data.tids,
@@ -147,7 +168,7 @@ topicsAPI.delete = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.restore = async function (caller, data) {
+export async function restore(caller: Caller, data: Data) {
     await doTopicAction('restore', 'event:topic_restored', caller, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         tids: data.tids,
@@ -156,7 +177,7 @@ topicsAPI.restore = async function (caller, data) {
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 // added resolve function API
-topicsAPI.resolve = async function (caller, data) {
+export async function resolve(caller: Caller, data: Data) {
     await doTopicAction('resolve', 'event:topic_resolved', caller, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         tids: data.tids,
@@ -164,7 +185,7 @@ topicsAPI.resolve = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.purge = async function (caller, data) {
+export async function purge(caller: Caller, data: Data) {
     await doTopicAction('purge', 'event:topic_purged', caller, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         tids: data.tids,
@@ -172,7 +193,7 @@ topicsAPI.purge = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.pin = async function (caller, data) {
+export async function pin(caller: Caller, data: Data) {
     await doTopicAction('pin', 'event:topic_pinned', caller, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         tids: data.tids,
@@ -180,7 +201,7 @@ topicsAPI.pin = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.unpin = async function (caller, data) {
+export async function unpin(caller: Caller, data: Data) {
     await doTopicAction('unpin', 'event:topic_unpinned', caller, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         tids: data.tids,
@@ -188,7 +209,7 @@ topicsAPI.unpin = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.lock = async function (caller, data) {
+export async function lock(caller: Caller, data: Data) {
     await doTopicAction('lock', 'event:topic_locked', caller, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         tids: data.tids,
@@ -196,7 +217,7 @@ topicsAPI.lock = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.unlock = async function (caller, data) {
+export async function unlock(caller: Caller, data: Data) {
     await doTopicAction('unlock', 'event:topic_unlocked', caller, {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         tids: data.tids,
@@ -204,18 +225,18 @@ topicsAPI.unlock = async function (caller, data) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.follow = async function (caller, data) {
+export async function follow(caller: Caller, data: Data) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await topics.follow(data.tid, caller.uid);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.ignore = async function (caller, data) {
+export async function ignore(caller: Caller, data: Data) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await topics.ignore(data.tid, caller.uid);
 };
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-topicsAPI.unfollow = async function (caller, data) {
+export async function unfollow(caller: Caller, data: Data) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await topics.unfollow(data.tid, caller.uid);
 };
