@@ -44,7 +44,6 @@ function get(caller, data) {
     });
 }
 exports.get = get;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function create(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -57,12 +56,12 @@ function create(caller, data) {
         payload.tags = payload.tags || [];
         apiHelpers.setDefaultPostData(caller, payload);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const isScheduling = parseInt(data.timestamp, 10) > payload.timestamp;
+        const isScheduling = parseInt(data.timeStamp, 10) > payload.timestamp;
         if (isScheduling) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             if (yield privileges.categories.can('topics:schedule', data.cid, caller.uid)) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                payload.timestamp = parseInt(data.timestamp, 10);
+                payload.timestamp = parseInt(data.timeStamp, 10);
             }
             else {
                 throw new Error('[[error:no-privileges]]');
@@ -91,7 +90,6 @@ function create(caller, data) {
     });
 }
 exports.create = create;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function reply(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -111,7 +109,8 @@ function reply(caller, data) {
             return yield posts.addToQueue(payload);
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const postData = yield topics.reply(payload); // postData seems to be a subset of postObj, refactor?
+        const postData = yield topics.reply(payload);
+        // postData seems to be a subset of postObj, refactor?
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const postObj = yield posts.getPostSummaryByPids([postData.pid], caller.uid, {});
         const result = {
@@ -140,7 +139,6 @@ function reply(caller, data) {
     });
 }
 exports.reply = reply;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function del(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -151,7 +149,6 @@ function del(caller, data) {
     });
 }
 exports.del = del;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function restore(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -162,7 +159,6 @@ function restore(caller, data) {
     });
 }
 exports.restore = restore;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 // added resolve function API
 function resolve(caller, data) {
@@ -174,7 +170,6 @@ function resolve(caller, data) {
     });
 }
 exports.resolve = resolve;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function purge(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -185,7 +180,6 @@ function purge(caller, data) {
     });
 }
 exports.purge = purge;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function pin(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -196,7 +190,6 @@ function pin(caller, data) {
     });
 }
 exports.pin = pin;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function unpin(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -207,7 +200,6 @@ function unpin(caller, data) {
     });
 }
 exports.unpin = unpin;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function lock(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -218,7 +210,6 @@ function lock(caller, data) {
     });
 }
 exports.lock = lock;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function unlock(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -229,7 +220,6 @@ function unlock(caller, data) {
     });
 }
 exports.unlock = unlock;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function follow(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -238,7 +228,6 @@ function follow(caller, data) {
     });
 }
 exports.follow = follow;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function ignore(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -247,7 +236,6 @@ function ignore(caller, data) {
     });
 }
 exports.ignore = ignore;
-;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function unfollow(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -256,4 +244,3 @@ function unfollow(caller, data) {
     });
 }
 exports.unfollow = unfollow;
-;
