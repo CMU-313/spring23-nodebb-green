@@ -14,12 +14,14 @@ import translator from '../translator';
 
 import { TopicData } from '../types';
 
-module.exports = function (Topics) {
-    Topics.create = async function (data) {
+export = function (Topics) {
+    Topics.create = async function (data: TopicData) {
         // This is an internal method, consider using Topics.post instead
         const timestamp = data.timestamp || Date.now();
 
-        const tid = await db.incrObjectField('global', 'nextTid');
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const tid: number = await db.incrObjectField('global', 'nextTid') as number;
 
         let topicData: TopicData = {
             tid: tid,
@@ -27,7 +29,7 @@ module.exports = function (Topics) {
             cid: data.cid,
             mainPid: 0,
             title: data.title,
-            slug: `${tid}/${slugify(data.title) || 'topic'}`,
+            slug: `${tid}/${data.title || 'topic'}`,
             timestamp: timestamp,
             lastposttime: 0,
             postcount: 0,
@@ -40,8 +42,10 @@ module.exports = function (Topics) {
             topicData.tags = data.tags.join(',');
         }
 
-        const result = await plugins.hooks.fire('filter:topic.create', { topic: topicData, data: data });
+        const result = await plugins.hooks.fire('filter:topic.create', { topic: topicData, data: data }) as { topic?: TopicData | null; };
         topicData = result.topic;
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await db.setObject(`topic:${topicData.tid}`, topicData);
 
         const timestampedSortedSetKeys = [
@@ -56,24 +60,38 @@ module.exports = function (Topics) {
         }
 
         await Promise.all([
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             db.sortedSetsAdd(timestampedSortedSetKeys, timestamp, topicData.tid),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             db.sortedSetsAdd([
                 'topics:views', 'topics:posts', 'topics:votes',
                 `cid:${topicData.cid}:tids:votes`,
                 `cid:${topicData.cid}:tids:posts`,
                 `cid:${topicData.cid}:tids:views`,
             ], 0, topicData.tid),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             user.addTopicIdToUser(topicData.uid, topicData.tid, timestamp),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             db.incrObjectField(`category:${topicData.cid}`, 'topic_count'),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             db.incrObjectField('global', 'topicCount'),
             Topics.createTags(data.tags, topicData.tid, timestamp),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             scheduled ? Promise.resolve() : categories.updateRecentTid(topicData.cid, topicData.tid),
         ]);
         if (scheduled) {
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             await Topics.scheduled.pin(tid, topicData);
         }
 
-        plugins.hooks.fire('action:topic.save', { topic: _.clone(topicData), data: data });
+        plugins.hooks.fire('action:topic.save', { topic: _.clone(topicData), data: data }) as { topic?: TopicData | null; };
         return topicData.tid;
     };
 
