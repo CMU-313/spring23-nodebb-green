@@ -104,6 +104,8 @@ module.exports = function (Topics) {
             data.title = String(data.title).trim();
             data.tags = data.tags || [];
             if (data.content) {
+                // The next line calls a function in a module that has not been updated to TS yet
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                 data.content = utils_1.default.rtrim(data.content);
             }
             Topics.checkTitle(data.title);

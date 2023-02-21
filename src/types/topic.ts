@@ -33,6 +33,14 @@ export type TopicData = {
   resolve: boolean;
   privateTopic: boolean;
   tags?: string | undefined[] | TagObject[];
+  content?: string;
+  fromQueue?: boolean;
+  req?: Request;
+  ip?: number;
+}
+
+export type Request = {
+  ip?: number;
 }
 
 export type TopicObjectOptionalProperties = {
@@ -45,7 +53,7 @@ export type TopicObjectOptionalProperties = {
 
 interface Teaser {
   pid: number;
-  uid: number;
+  uid: number | string;
   timestamp: number;
   tid: number;
   content: string;
@@ -58,7 +66,7 @@ export type TopicObjectSlim = TopicSlimProperties & TopicSlimOptionalProperties;
 
 export type TopicSlimProperties = {
   tid: number;
-  uid: number;
+  uid: number | string;
   cid: number;
   title: string;
   slug: string;

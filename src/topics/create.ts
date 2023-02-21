@@ -12,7 +12,7 @@ import privileges from '../privileges';
 import categories from '../categories';
 import translator from '../translator';
 
-import { TopicData } from '../types';
+import { TopicData, PostObjectPartial } from '../types';
 
 export = function (Topics) {
     Topics.create = async function (data: TopicData) {
@@ -95,13 +95,15 @@ export = function (Topics) {
         return topicData.tid;
     };
 
-    Topics.post = async function (data) {
+    Topics.post = async function (data: TopicData) {
         data = await plugins.hooks.fire('filter:topic.post', data);
         const { uid } = data;
 
         data.title = String(data.title).trim();
         data.tags = data.tags || [];
         if (data.content) {
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             data.content = utils.rtrim(data.content);
         }
         Topics.checkTitle(data.title);
@@ -132,7 +134,7 @@ export = function (Topics) {
 
         const tid = await Topics.create(data);
 
-        let postData = data;
+        let postData: PostObjectPartial = data;
         postData.tid = tid;
         postData.ip = data.req ? data.req.ip : null;
         postData.isMain = true;
@@ -164,7 +166,7 @@ export = function (Topics) {
         analytics.increment(['topics', `topics:byCid:${topicData.cid}`]);
         plugins.hooks.fire('action:topic.post', { topic: topicData, post: postData, data: data });
 
-        if (parseInt(uid, 10) && !topicData.scheduled) {
+        if (parseInt(uid as string, 10) && !topicData.scheduled) {
             user.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
         }
 
