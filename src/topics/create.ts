@@ -12,9 +12,67 @@ import privileges from '../privileges';
 import categories from '../categories';
 import translator from '../translator';
 
-import { TopicData, PostObjectPartial } from '../types';
+import { TopicData, PostObjectPartial, PostObject } from '../types';
+
+async function guestHandleValid(data) {
+    if (meta.config.allowGuestHandles && parseInt(data.uid, 10) === 0 && data.handle) {
+        if (data.handle.length > meta.config.maximumUsernameLength) {
+            throw new Error('[[error:guest-handle-invalid]]');
+        }
+        const exists = await user.existsBySlug(slugify(data.handle));
+        if (exists) {
+            throw new Error('[[error:username-taken]]');
+        }
+    }
+}
 
 export = function (Topics) {
+    async function onNewPost(postData, data) {
+        const { tid } = postData;
+        const { uid } = postData;
+        await Topics.markAsUnreadForAll(tid);
+        await Topics.markAsRead([tid], uid);
+        const [
+            userInfo,
+            topicInfo,
+        ] = await Promise.all([
+            posts.getUserInfoForPosts([postData.uid], uid),
+            Topics.getTopicFields(tid, [
+                'tid',
+                'uid',
+                'title',
+                'slug',
+                'cid',
+                'postcount',
+                'mainPid',
+                'scheduled',
+                'privateTopic',
+                'resolve',
+            ]),
+            Topics.addParentPosts([postData]),
+            Topics.syncBacklinks(postData),
+            posts.parsePost(postData),
+        ]);
+
+        postData.user = userInfo[0];
+        postData.topic = topicInfo;
+        postData.index = topicInfo.postcount - 1;
+
+        posts.overrideGuestHandle(postData, data.handle);
+
+        postData.votes = 0;
+        postData.bookmarked = false;
+        postData.display_edit_tools = true;
+        postData.display_delete_tools = true;
+        postData.display_moderator_tools = true;
+        postData.display_move_tools = true;
+        postData.selfPost = false;
+        postData.timestampISO = utils.toISOString(postData.timestamp);
+        postData.topic.title = String(postData.topic.title);
+
+        return postData;
+    }
+    
     Topics.create = async function (data: TopicData) {
         // This is an internal method, consider using Topics.post instead
         const timestamp = data.timestamp || Date.now();
@@ -104,7 +162,7 @@ export = function (Topics) {
         if (data.content) {
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            data.content = utils.rtrim(data.content);
+            data.content = utils.rtrim(data.content) as string;
         }
         Topics.checkTitle(data.title);
         await Topics.validateTags(data.tags, data.cid, uid);
@@ -113,9 +171,15 @@ export = function (Topics) {
             Topics.checkContent(data.content);
         }
 
-        const [categoryExists, canCreate, canTag] = await Promise.all([
+        const [categoryExists, canCreate, canTag]: boolean[] = await Promise.all([
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             categories.exists(data.cid),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             privileges.categories.can('topics:create', data.cid, uid),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             privileges.categories.can('topics:tag', data.cid, uid),
         ]);
 
@@ -129,6 +193,8 @@ export = function (Topics) {
 
         await guestHandleValid(data);
         if (!data.fromQueue) {
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             await user.isReadyToPost(uid, data.cid);
         }
 
@@ -138,7 +204,9 @@ export = function (Topics) {
         postData.tid = tid;
         postData.ip = data.req ? data.req.ip : null;
         postData.isMain = true;
-        postData = await posts.create(postData);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        postData = await posts.create(postData) as PostObjectPartial;
         postData = await onNewPost(postData, data);
 
         const [settings, topics] = await Promise.all([
@@ -231,52 +299,6 @@ export = function (Topics) {
         return postData;
     };
 
-    async function onNewPost(postData, data) {
-        const { tid } = postData;
-        const { uid } = postData;
-        await Topics.markAsUnreadForAll(tid);
-        await Topics.markAsRead([tid], uid);
-        const [
-            userInfo,
-            topicInfo,
-        ] = await Promise.all([
-            posts.getUserInfoForPosts([postData.uid], uid),
-            Topics.getTopicFields(tid, [
-                'tid',
-                'uid',
-                'title',
-                'slug',
-                'cid',
-                'postcount',
-                'mainPid',
-                'scheduled',
-                'privateTopic',
-                'resolve',
-            ]),
-            Topics.addParentPosts([postData]),
-            Topics.syncBacklinks(postData),
-            posts.parsePost(postData),
-        ]);
-
-        postData.user = userInfo[0];
-        postData.topic = topicInfo;
-        postData.index = topicInfo.postcount - 1;
-
-        posts.overrideGuestHandle(postData, data.handle);
-
-        postData.votes = 0;
-        postData.bookmarked = false;
-        postData.display_edit_tools = true;
-        postData.display_delete_tools = true;
-        postData.display_moderator_tools = true;
-        postData.display_move_tools = true;
-        postData.selfPost = false;
-        postData.timestampISO = utils.toISOString(postData.timestamp);
-        postData.topic.title = String(postData.topic.title);
-
-        return postData;
-    }
-
     Topics.checkTitle = function (title) {
         check(title, meta.config.minimumTitleLength, meta.config.maximumTitleLength, 'title-too-short', 'title-too-long');
     };
@@ -295,18 +317,6 @@ export = function (Topics) {
             throw new Error(`[[error:${minError}, ${min}]]`);
         } else if (item.length > parseInt(max, 10)) {
             throw new Error(`[[error:${maxError}, ${max}]]`);
-        }
-    }
-
-    async function guestHandleValid(data) {
-        if (meta.config.allowGuestHandles && parseInt(data.uid, 10) === 0 && data.handle) {
-            if (data.handle.length > meta.config.maximumUsernameLength) {
-                throw new Error('[[error:guest-handle-invalid]]');
-            }
-            const exists = await user.existsBySlug(slugify(data.handle));
-            if (exists) {
-                throw new Error('[[error:username-taken]]');
-            }
         }
     }
 
