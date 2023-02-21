@@ -37,6 +37,7 @@ export type TopicData = {
   fromQueue?: boolean;
   req?: Request;
   ip?: number;
+  handle?: string;
 }
 
 export type Request = {

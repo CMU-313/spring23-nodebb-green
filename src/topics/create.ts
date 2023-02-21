@@ -27,7 +27,7 @@ async function guestHandleValid(data) {
 }
 
 export = function (Topics) {
-    async function onNewPost(postData, data) {
+    async function onNewPost(postData: PostObjectPartial, data: TopicData) {
         const { tid } = postData;
         const { uid } = postData;
         await Topics.markAsUnreadForAll(tid);
@@ -72,7 +72,7 @@ export = function (Topics) {
 
         return postData;
     }
-    
+
     Topics.create = async function (data: TopicData) {
         // This is an internal method, consider using Topics.post instead
         const timestamp = data.timestamp || Date.now();

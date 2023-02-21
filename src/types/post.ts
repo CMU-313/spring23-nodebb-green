@@ -39,4 +39,10 @@ export type PostObjectPartial = {
   isMain?: boolean;
   ip?: number;
   index?: number;
+  bookmarked?: boolean;
+  display_edit_tools?: true;
+  display_delete_tools?: boolean;
+  display_moderator_tools?: boolean;
+  display_move_tools?: boolean;
+  selfPost?: boolean;
 };
