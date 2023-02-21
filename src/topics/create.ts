@@ -12,7 +12,7 @@ import privileges from '../privileges';
 import categories from '../categories';
 import translator from '../translator';
 
-import { TopicData, PostObjectPartial, PostObject } from '../types';
+import { TopicData, TopicFields, PostObjectPartial, SettingsObject, TopicObject, PostObject, TopicAndPostData } from '../types';
 
 async function guestHandleValid(data) {
     if (meta.config.allowGuestHandles && parseInt(data.uid, 10) === 0 && data.handle) {
@@ -26,7 +26,51 @@ async function guestHandleValid(data) {
     }
 }
 
-export = function (Topics) {
+function check(item, min, max, minError, maxError) {
+    // Trim and remove HTML (latter for composers that send in HTML, like redactor)
+    if (typeof item === 'string') {
+        item = utils.stripHTMLTags(item).trim();
+    }
+
+    if (item === null || item === undefined || item.length < parseInt(min, 10)) {
+        throw new Error(`[[error:${minError}, ${min}]]`);
+    } else if (item.length > parseInt(max, 10)) {
+        throw new Error(`[[error:${maxError}, ${max}]]`);
+    }
+}
+
+
+async function canReply(data, topicData) {
+    if (!topicData) {
+        throw new Error('[[error:no-topic]]');
+    }
+    const { tid, uid } = data;
+    const { cid, deleted, locked, scheduled } = topicData;
+
+    const [canReply, canSchedule, isAdminOrMod] = await Promise.all([
+        privileges.topics.can('topics:reply', tid, uid),
+        privileges.topics.can('topics:schedule', tid, uid),
+        privileges.categories.isAdminOrMod(cid, uid),
+    ]);
+
+    if (locked && !isAdminOrMod) {
+        throw new Error('[[error:topic-locked]]');
+    }
+
+    if (!scheduled && deleted && !isAdminOrMod) {
+        throw new Error('[[error:topic-deleted]]');
+    }
+
+    if (scheduled && !canSchedule) {
+        throw new Error('[[error:no-privileges]]');
+    }
+
+    if (!canReply) {
+        throw new Error('[[error:no-privileges]]');
+    }
+}
+
+export = function (Topics: TopicFields) {
     async function onNewPost(postData: PostObjectPartial, data: TopicData) {
         const { tid } = postData;
         const { uid } = postData;
@@ -209,10 +253,12 @@ export = function (Topics) {
         postData = await posts.create(postData) as PostObjectPartial;
         postData = await onNewPost(postData, data);
 
-        const [settings, topics] = await Promise.all([
-            user.getSettings(uid),
-            Topics.getTopicsByTids([postData.tid], uid),
-        ]);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const settings: SettingsObject = await user.getSettings(uid) as SettingsObject;
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const topics: TopicObject[] = await Topics.getTopicsByTids([postData.tid], uid);
 
         if (!Array.isArray(topics) || !topics.length) {
             throw new Error('[[error:no-topic]]');
@@ -232,10 +278,12 @@ export = function (Topics) {
         }
 
         analytics.increment(['topics', `topics:byCid:${topicData.cid}`]);
-        plugins.hooks.fire('action:topic.post', { topic: topicData, post: postData, data: data });
+        plugins.hooks.fire('action:topic.post', { topic: topicData, post: postData, data: data }) as TopicAndPostData;
 
         if (parseInt(uid as string, 10) && !topicData.scheduled) {
-            user.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            await user.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
         }
 
         return {
@@ -245,7 +293,7 @@ export = function (Topics) {
     };
 
     Topics.reply = async function (data) {
-        data = await plugins.hooks.fire('filter:topic.reply', data);
+        data = await plugins.hooks.fire('filter:topic.reply', data) as TopicData;
         const { tid } = data;
         const { uid } = data;
 
@@ -260,6 +308,8 @@ export = function (Topics) {
             data.content = utils.rtrim(data.content);
         }
         if (!data.fromQueue) {
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             await user.isReadyToPost(uid, data.cid);
             Topics.checkContent(data.content);
         }
@@ -270,19 +320,29 @@ export = function (Topics) {
         }
 
         data.ip = data.req ? data.req.ip : null;
-        let postData = await posts.create(data);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        let postData = await posts.create(data) as PostObjectPartial;
         postData = await onNewPost(postData, data);
 
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const settings = await user.getSettings(uid);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         if (uid > 0 && settings.followTopicsOnReply) {
             await Topics.follow(postData.tid, uid);
         }
 
-        if (parseInt(uid, 10)) {
+        if (parseInt(uid as string, 10)) {
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             user.setUserField(uid, 'lastonline', Date.now());
         }
 
-        if (parseInt(uid, 10) || meta.config.allowGuestReplyNotifications) {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        if (parseInt(uid as string, 10) || meta.config.allowGuestReplyNotifications) {
             const { displayname } = postData.user;
 
             Topics.notifyFollowers(postData, uid, {
@@ -294,7 +354,7 @@ export = function (Topics) {
         }
 
         analytics.increment(['posts', `posts:byCid:${data.cid}`]);
-        plugins.hooks.fire('action:topic.reply', { post: _.clone(postData), data: data });
+        plugins.hooks.fire('action:topic.reply', { post: _.clone(postData), data: data }) as PostObject | null;
 
         return postData;
     };
@@ -306,47 +366,4 @@ export = function (Topics) {
     Topics.checkContent = function (content) {
         check(content, meta.config.minimumPostLength, meta.config.maximumPostLength, 'content-too-short', 'content-too-long');
     };
-
-    function check(item, min, max, minError, maxError) {
-        // Trim and remove HTML (latter for composers that send in HTML, like redactor)
-        if (typeof item === 'string') {
-            item = utils.stripHTMLTags(item).trim();
-        }
-
-        if (item === null || item === undefined || item.length < parseInt(min, 10)) {
-            throw new Error(`[[error:${minError}, ${min}]]`);
-        } else if (item.length > parseInt(max, 10)) {
-            throw new Error(`[[error:${maxError}, ${max}]]`);
-        }
-    }
-
-    async function canReply(data, topicData) {
-        if (!topicData) {
-            throw new Error('[[error:no-topic]]');
-        }
-        const { tid, uid } = data;
-        const { cid, deleted, locked, scheduled } = topicData;
-
-        const [canReply, canSchedule, isAdminOrMod] = await Promise.all([
-            privileges.topics.can('topics:reply', tid, uid),
-            privileges.topics.can('topics:schedule', tid, uid),
-            privileges.categories.isAdminOrMod(cid, uid),
-        ]);
-
-        if (locked && !isAdminOrMod) {
-            throw new Error('[[error:topic-locked]]');
-        }
-
-        if (!scheduled && deleted && !isAdminOrMod) {
-            throw new Error('[[error:topic-deleted]]');
-        }
-
-        if (scheduled && !canSchedule) {
-            throw new Error('[[error:no-privileges]]');
-        }
-
-        if (!canReply) {
-            throw new Error('[[error:no-privileges]]');
-        }
-    }
 };

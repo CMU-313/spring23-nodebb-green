@@ -1,6 +1,7 @@
 import { CategoryObject } from './category';
 import { TagObject } from './tag';
 import { UserObjectSlim } from './user';
+import { PostObjectPartial } from './post';
 
 export type TopicObject =
     TopicObjectSlim & TopicObjectCoreProperties & TopicObjectOptionalProperties;
@@ -17,6 +18,7 @@ export type TopicObjectCoreProperties = {
   bookmark: number;
   unreplied: boolean;
   icons: string[];
+  mainPost?: PostObjectPartial;
 };
 
 export type TopicData = {
@@ -28,7 +30,7 @@ export type TopicData = {
   slug?: string;
   timestamp?: number;
   lastposttime?: number | string;
-  postcount?: number | string;
+  postcount?: number;
   viewcount?: number | string;
   resolve: boolean;
   privateTopic: boolean;
@@ -72,7 +74,7 @@ export type TopicSlimProperties = {
   title: string;
   slug: string;
   mainPid: number;
-  postcount: string;
+  postcount: number;
   viewcount: string;
   postercount: string;
   scheduled: string;
@@ -104,3 +106,35 @@ export type TopicSlimOptionalProperties = {
   tid: number;
   numThumbs: number;
 };
+
+export interface TopicAndPostData {
+  topicData?: TopicObject;
+  postData?: PostObjectPartial;
+}
+
+export interface TopicFields {
+  markAsUnreadForAll: (tid: number) => Promise<void>;
+  markAsRead: (tids: number[], uid: number | string) => Promise<void>;
+  getTopicFields: (tid: number, fields: string[]) => Promise<TopicObject | null>;
+  addParentPosts: (postData: PostObjectPartial[]) => Promise<void>;
+  syncBacklinks: (postData: PostObjectPartial) => Promise<void>;
+  create: (data: TopicData) => Promise<number>;
+  createTags: (tags: string | undefined[] | TagObject[], tid: number, timestamp: number) => Promise<void>;
+  scheduled: any;
+  post: (data: TopicData) => Promise<TopicAndPostData>;
+  checkTitle: (title: string) => void;
+  validateTags: (tags: string | undefined[] | TagObject[], cid: number, uid: number | string) => Promise<void>;
+  filterTags: (tags: string | undefined[] | TagObject[], cid: number) => Promise<string | undefined[] | TagObject[]>;
+  checkContent: (content: string) => void;
+  getTopicsByTids: (tids: number[], uid: number | string) => Promise<TopicObject[] | null>;
+  follow: (tid: number, uid: number | string) => Promise<void>;
+  delete: (tid: number) => Promise<void>;
+  reply: (data: TopicData) => Promise<PostObjectPartial>;
+  getTopicData: (tid: number) => Promise<TopicObject | null>;
+  notifyFollowers: (postData: PostObjectPartial, uid: number | string, obj: {
+    type: string,
+    bodyShort: string,
+    nid: string,
+    mergeId: string,
+  }) => void;
+}

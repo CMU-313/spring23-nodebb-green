@@ -36,6 +36,44 @@ function guestHandleValid(data) {
         }
     });
 }
+function check(item, min, max, minError, maxError) {
+    // Trim and remove HTML (latter for composers that send in HTML, like redactor)
+    if (typeof item === 'string') {
+        item = utils_1.default.stripHTMLTags(item).trim();
+    }
+    if (item === null || item === undefined || item.length < parseInt(min, 10)) {
+        throw new Error(`[[error:${minError}, ${min}]]`);
+    }
+    else if (item.length > parseInt(max, 10)) {
+        throw new Error(`[[error:${maxError}, ${max}]]`);
+    }
+}
+function canReply(data, topicData) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!topicData) {
+            throw new Error('[[error:no-topic]]');
+        }
+        const { tid, uid } = data;
+        const { cid, deleted, locked, scheduled } = topicData;
+        const [canReply, canSchedule, isAdminOrMod] = yield Promise.all([
+            privileges_1.default.topics.can('topics:reply', tid, uid),
+            privileges_1.default.topics.can('topics:schedule', tid, uid),
+            privileges_1.default.categories.isAdminOrMod(cid, uid),
+        ]);
+        if (locked && !isAdminOrMod) {
+            throw new Error('[[error:topic-locked]]');
+        }
+        if (!scheduled && deleted && !isAdminOrMod) {
+            throw new Error('[[error:topic-deleted]]');
+        }
+        if (scheduled && !canSchedule) {
+            throw new Error('[[error:no-privileges]]');
+        }
+        if (!canReply) {
+            throw new Error('[[error:no-privileges]]');
+        }
+    });
+}
 module.exports = function (Topics) {
     function onNewPost(postData, data) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -199,10 +237,12 @@ module.exports = function (Topics) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             postData = (yield posts_1.default.create(postData));
             postData = yield onNewPost(postData, data);
-            const [settings, topics] = yield Promise.all([
-                user_1.default.getSettings(uid),
-                Topics.getTopicsByTids([postData.tid], uid),
-            ]);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const settings = yield user_1.default.getSettings(uid);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const topics = yield Topics.getTopicsByTids([postData.tid], uid);
             if (!Array.isArray(topics) || !topics.length) {
                 throw new Error('[[error:no-topic]]');
             }
@@ -220,7 +260,9 @@ module.exports = function (Topics) {
             analytics_1.default.increment(['topics', `topics:byCid:${topicData.cid}`]);
             plugins_1.default.hooks.fire('action:topic.post', { topic: topicData, post: postData, data: data });
             if (parseInt(uid, 10) && !topicData.scheduled) {
-                user_1.default.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
+                // The next line calls a function in a module that has not been updated to TS yet
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                yield user_1.default.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
             }
             return {
                 topicData: topicData,
@@ -230,7 +272,7 @@ module.exports = function (Topics) {
     };
     Topics.reply = function (data) {
         return __awaiter(this, void 0, void 0, function* () {
-            data = yield plugins_1.default.hooks.fire('filter:topic.reply', data);
+            data = (yield plugins_1.default.hooks.fire('filter:topic.reply', data));
             const { tid } = data;
             const { uid } = data;
             const topicData = yield Topics.getTopicData(tid);
@@ -241,6 +283,8 @@ module.exports = function (Topics) {
                 data.content = utils_1.default.rtrim(data.content);
             }
             if (!data.fromQueue) {
+                // The next line calls a function in a module that has not been updated to TS yet
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                 yield user_1.default.isReadyToPost(uid, data.cid);
                 Topics.checkContent(data.content);
             }
@@ -249,15 +293,25 @@ module.exports = function (Topics) {
                 data.timestamp = topicData.lastposttime + 1;
             }
             data.ip = data.req ? data.req.ip : null;
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             let postData = yield posts_1.default.create(data);
             postData = yield onNewPost(postData, data);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             const settings = yield user_1.default.getSettings(uid);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             if (uid > 0 && settings.followTopicsOnReply) {
                 yield Topics.follow(postData.tid, uid);
             }
             if (parseInt(uid, 10)) {
+                // The next line calls a function in a module that has not been updated to TS yet
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                 user_1.default.setUserField(uid, 'lastonline', Date.now());
             }
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             if (parseInt(uid, 10) || meta_1.default.config.allowGuestReplyNotifications) {
                 const { displayname } = postData.user;
                 Topics.notifyFollowers(postData, uid, {
@@ -278,42 +332,4 @@ module.exports = function (Topics) {
     Topics.checkContent = function (content) {
         check(content, meta_1.default.config.minimumPostLength, meta_1.default.config.maximumPostLength, 'content-too-short', 'content-too-long');
     };
-    function check(item, min, max, minError, maxError) {
-        // Trim and remove HTML (latter for composers that send in HTML, like redactor)
-        if (typeof item === 'string') {
-            item = utils_1.default.stripHTMLTags(item).trim();
-        }
-        if (item === null || item === undefined || item.length < parseInt(min, 10)) {
-            throw new Error(`[[error:${minError}, ${min}]]`);
-        }
-        else if (item.length > parseInt(max, 10)) {
-            throw new Error(`[[error:${maxError}, ${max}]]`);
-        }
-    }
-    function canReply(data, topicData) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!topicData) {
-                throw new Error('[[error:no-topic]]');
-            }
-            const { tid, uid } = data;
-            const { cid, deleted, locked, scheduled } = topicData;
-            const [canReply, canSchedule, isAdminOrMod] = yield Promise.all([
-                privileges_1.default.topics.can('topics:reply', tid, uid),
-                privileges_1.default.topics.can('topics:schedule', tid, uid),
-                privileges_1.default.categories.isAdminOrMod(cid, uid),
-            ]);
-            if (locked && !isAdminOrMod) {
-                throw new Error('[[error:topic-locked]]');
-            }
-            if (!scheduled && deleted && !isAdminOrMod) {
-                throw new Error('[[error:topic-deleted]]');
-            }
-            if (scheduled && !canSchedule) {
-                throw new Error('[[error:no-privileges]]');
-            }
-            if (!canReply) {
-                throw new Error('[[error:no-privileges]]');
-            }
-        });
-    }
 };
