@@ -25,10 +25,16 @@ const categories_1 = __importDefault(require("../categories"));
 const translator_1 = __importDefault(require("../translator"));
 function guestHandleValid(data) {
     return __awaiter(this, void 0, void 0, function* () {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         if (meta_1.default.config.allowGuestHandles && parseInt(data.uid, 10) === 0 && data.handle) {
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             if (data.handle.length > meta_1.default.config.maximumUsernameLength) {
                 throw new Error('[[error:guest-handle-invalid]]');
             }
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             const exists = yield user_1.default.existsBySlug((0, slugify_1.default)(data.handle));
             if (exists) {
                 throw new Error('[[error:username-taken]]');
@@ -56,8 +62,14 @@ function canReply(data, topicData) {
         const { tid, uid } = data;
         const { cid, deleted, locked, scheduled } = topicData;
         const [canReply, canSchedule, isAdminOrMod] = yield Promise.all([
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             privileges_1.default.topics.can('topics:reply', tid, uid),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             privileges_1.default.topics.can('topics:schedule', tid, uid),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             privileges_1.default.categories.isAdminOrMod(cid, uid),
         ]);
         if (locked && !isAdminOrMod) {
@@ -82,26 +94,21 @@ module.exports = function (Topics) {
             yield Topics.markAsUnreadForAll(tid);
             yield Topics.markAsRead([tid], uid);
             const [userInfo, topicInfo,] = yield Promise.all([
+                // The next line calls a function in a module that has not been updated to TS yet
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                 posts_1.default.getUserInfoForPosts([postData.uid], uid),
-                Topics.getTopicFields(tid, [
-                    'tid',
-                    'uid',
-                    'title',
-                    'slug',
-                    'cid',
-                    'postcount',
-                    'mainPid',
-                    'scheduled',
-                    'privateTopic',
-                    'resolve',
-                ]),
+                Topics.getTopicFields(tid, ['tid', 'uid', 'title', 'slug', 'cid', 'postcount', 'mainPid', 'scheduled']),
                 Topics.addParentPosts([postData]),
                 Topics.syncBacklinks(postData),
+                // The next line calls a function in a module that has not been updated to TS yet
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                 posts_1.default.parsePost(postData),
             ]);
             postData.user = userInfo[0];
             postData.topic = topicInfo;
             postData.index = topicInfo.postcount - 1;
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             posts_1.default.overrideGuestHandle(postData, data.handle);
             postData.votes = 0;
             postData.bookmarked = false;
@@ -190,7 +197,7 @@ module.exports = function (Topics) {
     };
     Topics.post = function (data) {
         return __awaiter(this, void 0, void 0, function* () {
-            data = yield plugins_1.default.hooks.fire('filter:topic.post', data);
+            data = (yield plugins_1.default.hooks.fire('filter:topic.post', data));
             const { uid } = data;
             data.title = String(data.title).trim();
             data.tags = data.tags || [];
@@ -327,9 +334,13 @@ module.exports = function (Topics) {
         });
     };
     Topics.checkTitle = function (title) {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         check(title, meta_1.default.config.minimumTitleLength, meta_1.default.config.maximumTitleLength, 'title-too-short', 'title-too-long');
     };
     Topics.checkContent = function (content) {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         check(content, meta_1.default.config.minimumPostLength, meta_1.default.config.maximumPostLength, 'content-too-short', 'content-too-long');
     };
 };
