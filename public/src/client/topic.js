@@ -64,7 +64,6 @@ define('forum/topic', [
         addPostsPreviewHandler();
 
         handleBookmark(tid);
-        handleResolve(tid);
 
         $(window).on('scroll', utils.debounce(updateTopicTitle, 250));
 
