@@ -19,6 +19,22 @@ export type TopicObjectCoreProperties = {
   icons: string[];
 };
 
+export type TopicData = {
+  tid?: number;
+  uid?: number | string;
+  cid?: number;
+  mainPid?: number;
+  title?: string;
+  slug?: string;
+  timestamp?: number;
+  lastposttime?: number | string;
+  postcount?: number | string;
+  viewcount?: number | string;
+  resolve: boolean;
+  privateTopic: boolean;
+  tags?: string | undefined[] | TagObject[];
+}
+
 export type TopicObjectOptionalProperties = {
   tid: number;
   thumb: string;
