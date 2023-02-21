@@ -130,6 +130,7 @@ export = function (Topics: TopicFields) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const tid: number = await db.incrObjectField('global', 'nextTid') as number;
+        const title: string = slugify(data.title) as string;
 
         let topicData: TopicData = {
             tid: tid,
@@ -137,7 +138,7 @@ export = function (Topics: TopicFields) {
             cid: data.cid,
             mainPid: 0,
             title: data.title,
-            slug: `${tid}/${data.title || 'topic'}`,
+            slug: `${tid}/${title || 'topic'}`,
             timestamp: timestamp,
             lastposttime: 0,
             postcount: 0,
