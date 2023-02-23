@@ -12,6 +12,8 @@ import helpers from '../helpers';
 import middleware from '../../middleware';
 import uploadsController from '../uploads';
 
+import { TopicData } from '../../types';
+
 interface Tag {
     value: string;
     valueEscaped: string;
@@ -30,13 +32,25 @@ interface ExtendedRequest extends Request {
         expiry: boolean;
         tags: Tag[];
         path: string;
-        tid: string;
+        tid: string | number;
         order: number;
     }
 }
 
 interface Payload {
     queued: boolean;
+}
+
+interface File {
+    name: string;
+    path: string;
+    url: string;
+    fileCount: number;
+    size: number;
+    sizeHumanReadable: string;
+    isDirectory: boolean;
+    isFile: boolean;
+    mtime: number;
 }
 
 export const get = async (req: ExtendedRequest, res: Response) => {
@@ -100,7 +114,7 @@ export const deleteTopic = async (req: ExtendedRequest, res: Response) => {
 async function resolveTopic(tid, uid) {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const topicData = await topics.getTopicFields(tid, ['tid', 'uid', 'cid']);
+    const topicData = await topics.getTopicFields(tid, ['tid', 'uid', 'cid']) as TopicData;
     if (!topicData || !topicData.cid) {
         throw new Error('[[error:no-topic]]');
     }
@@ -243,7 +257,7 @@ export const getThumbs = async (req: ExtendedRequest, res: Response) => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             topics.exists(req.params.tid),
             privileges.topics.can('topics:read', req.params.tid, req.uid),
-        ]);
+        ]) as boolean[];
         if (!exists || !canRead) {
             return helpers.formatApiResponse(403, res);
         }
@@ -276,7 +290,7 @@ export const addThumb = async (req: ExtendedRequest, res: Response) => {
         return;
     }
 
-    const files = await uploadsController.uploadThumb(req, res); // response is handled here
+    const files = await uploadsController.uploadThumb(req, res) as File[]; // response is handled here
 
     // Add uploaded files to topic zset
     if (files && files.length) {
@@ -292,7 +306,7 @@ export const addThumb = async (req: ExtendedRequest, res: Response) => {
 export const migrateThumbs = async (req: ExtendedRequest, res: Response) => {
     await Promise.all([
         checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res }),
-        checkThumbPrivileges({ tid: req.body.tid, uid: req.user.uid, res }),
+        checkThumbPrivileges({ tid: req.body.tid as string, uid: req.user.uid, res }),
     ]);
     if (res.headersSent) {
         return;
