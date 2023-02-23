@@ -1,5 +1,6 @@
 import validator from 'validator';
 import _ from 'lodash';
+import { Request, Response } from 'express';
 
 import db from '../../database';
 import api from '../../api';
@@ -11,13 +12,37 @@ import helpers from '../helpers';
 import middleware from '../../middleware';
 import uploadsController from '../uploads';
 
-export const get = async (req, res) => {
+interface ExtendedRequest extends Request {
+    uid: number;
+    sessionID: number;
+    user?: {
+        uid: number
+    };
+    body?: {
+        expiry: boolean
+    }
+}
+
+export const get = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await helpers.formatApiResponse(200, res, await api.topics.get(req, req.params));
 };
 
-export const create = async (req, res) => {
+async function lockPosting(req: ExtendedRequest, error: string) {
+    const id = req.uid > 0 ? req.uid : req.sessionID;
+    const value = `posting${id}`;
+
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const count = await db.incrObjectField('locks', value) as number;
+    if (count > 1) {
+        throw new Error(error);
+    }
+    return value;
+}
+
+export const create = async (req: ExtendedRequest, res: Response) => {
     const id = await lockPosting(req, '[[error:already-posting]]');
     try {
         // The next line calls a function in a module that has not been updated to TS yet
@@ -35,20 +60,7 @@ export const create = async (req, res) => {
     }
 };
 
-async function lockPosting(req, error) {
-    const id = req.uid > 0 ? req.uid : req.sessionID;
-    const value = `posting${id}`;
-
-    // The next line calls a function in a module that has not been updated to TS yet
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const count = await db.incrObjectField('locks', value);
-    if (count > 1) {
-        throw new Error(error);
-    }
-    return value;
-}
-
-export const reply = async (req, res) => {
+export const reply = async (req: ExtendedRequest, res: Response) => {
     const id = await lockPosting(req, '[[error:already-posting]]');
     try {
         // The next line calls a function in a module that has not been updated to TS yet
@@ -62,7 +74,7 @@ export const reply = async (req, res) => {
     }
 };
 
-export const deleteTopic = async (req, res) => {
+export const deleteTopic = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.delete(req, { tids: [req.params.tid] });
@@ -70,7 +82,7 @@ export const deleteTopic = async (req, res) => {
 };
 
 // added resolved field
-export const resolve = async (req, res) => {
+export const resolve = async (req: ExtendedRequest, res: Response) => {
     await resolveTopic(req.params.tid, req.uid);
     await helpers.formatApiResponse(200, res);
 };
@@ -85,7 +97,7 @@ async function resolveTopic(tid, uid) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const isOwnerOrAdminOrMod = await privileges.topics.isOwnerOrAdminOrMod(tid, uid);
+    const isOwnerOrAdminOrMod = await privileges.topics.isOwnerOrAdminOrMod(tid, uid) as boolean;
     if (!isOwnerOrAdminOrMod) {
         throw new Error('[[error:no-privileges]]');
     }
@@ -102,7 +114,7 @@ async function resolveTopic(tid, uid) {
     return topicData;
 }
 
-export const restore = async (req, res) => {
+export const restore = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.restore(req, { tids: [req.params.tid] });
@@ -110,14 +122,14 @@ export const restore = async (req, res) => {
     await helpers.formatApiResponse(200, res);
 };
 
-export const purge = async (req, res) => {
+export const purge = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.purge(req, { tids: [req.params.tid] });
     await helpers.formatApiResponse(200, res);
 };
 
-export const pin = async (req, res) => {
+export const pin = async (req: ExtendedRequest, res: Response) => {
     // Pin expiry was not available w/ sockets hence not included in api lib method
     if (req.body.expiry) {
         // The next line calls a function in a module that has not been updated to TS yet
@@ -131,56 +143,56 @@ export const pin = async (req, res) => {
     await helpers.formatApiResponse(200, res);
 };
 
-export const unpin = async (req, res) => {
+export const unpin = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.unpin(req, { tids: [req.params.tid] });
     await helpers.formatApiResponse(200, res);
 };
 
-export const lock = async (req, res) => {
+export const lock = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.lock(req, { tids: [req.params.tid] });
     await helpers.formatApiResponse(200, res);
 };
 
-export const unlock = async (req, res) => {
+export const unlock = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.unlock(req, { tids: [req.params.tid] });
     await helpers.formatApiResponse(200, res);
 };
 
-export const follow = async (req, res) => {
+export const follow = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.follow(req, req.params);
     await helpers.formatApiResponse(200, res);
 };
 
-export const ignore = async (req, res) => {
+export const ignore = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.ignore(req, req.params);
     await helpers.formatApiResponse(200, res);
 };
 
-export const unfollow = async (req, res) => {
+export const unfollow = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.unfollow(req, req.params);
     await helpers.formatApiResponse(200, res);
 };
 
-export const addTags = async (req, res) => {
+export const addTags = async (req: ExtendedRequest, res: Response) => {
     if (!await privileges.topics.canEdit(req.params.tid, req.user.uid)) {
         return helpers.formatApiResponse(403, res);
     }
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const cid = await topics.getTopicField(req.params.tid, 'cid');
+    const cid = await topics.getTopicField(req.params.tid, 'cid') as number;
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -196,7 +208,7 @@ export const addTags = async (req, res) => {
     await helpers.formatApiResponse(200, res);
 };
 
-export const deleteTags = async (req, res) => {
+export const deleteTags = async (req: ExtendedRequest, res: Response) => {
     if (!await privileges.topics.canEdit(req.params.tid, req.user.uid)) {
         return helpers.formatApiResponse(403, res);
     }
@@ -207,8 +219,9 @@ export const deleteTags = async (req, res) => {
     await helpers.formatApiResponse(200, res);
 };
 
-export const getThumbs = async (req, res) => {
-    if (isFinite(req.params.tid)) { // post_uuids can be passed in occasionally, in that case no checks are necessary
+export const getThumbs = async (req: ExtendedRequest, res: Response) => {
+    // post_uuids can be passed in occasionally, in that case no checks are necessary
+    if (isFinite(parseInt(req.params.tid, 10))) {
         const [exists, canRead] = await Promise.all([
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -223,74 +236,6 @@ export const getThumbs = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await helpers.formatApiResponse(200, res, await topics.thumbs.get(req.params.tid));
-};
-
-export const addThumb = async (req, res) => {
-    await checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res });
-    if (res.headersSent) {
-        return;
-    }
-
-    const files = await uploadsController.uploadThumb(req, res); // response is handled here
-
-    // Add uploaded files to topic zset
-    if (files && files.length) {
-        await Promise.all(files.map(async (fileObj) => {
-            await topics.thumbs.associate({
-                id: req.params.tid,
-                path: fileObj.path || fileObj.url,
-            });
-        }));
-    }
-};
-
-export const migrateThumbs = async (req, res) => {
-    await Promise.all([
-        checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res }),
-        checkThumbPrivileges({ tid: req.body.tid, uid: req.user.uid, res }),
-    ]);
-    if (res.headersSent) {
-        return;
-    }
-
-    await topics.thumbs.migrate(req.params.tid, req.body.tid);
-    await helpers.formatApiResponse(200, res);
-};
-
-export const deleteThumb = async (req, res) => {
-    if (!req.body.path.startsWith('http')) {
-        await middleware.assert.path(req, res, () => { });
-        if (res.headersSent) {
-            return;
-        }
-    }
-
-    await checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res });
-    if (res.headersSent) {
-        return;
-    }
-
-    await topics.thumbs.delete(req.params.tid, req.body.path);
-    await helpers.formatApiResponse(200, res, await topics.thumbs.get(req.params.tid));
-};
-
-export const reorderThumbs = async (req, res) => {
-    await checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res });
-    if (res.headersSent) {
-        return;
-    }
-
-    const exists = await topics.thumbs.exists(req.params.tid, req.body.path);
-    if (!exists) {
-        return helpers.formatApiResponse(404, res);
-    }
-
-    await topics.thumbs.associate({
-        id: req.params.tid,
-        path: req.body.path,
-        score: req.body.order,
-    });
-    await helpers.formatApiResponse(200, res);
 };
 
 async function checkThumbPrivileges({ tid, uid, res }) {
@@ -309,7 +254,75 @@ async function checkThumbPrivileges({ tid, uid, res }) {
     }
 }
 
-export const getEvents = async (req, res) => {
+export const addThumb = async (req: ExtendedRequest, res: Response) => {
+    await checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res });
+    if (res.headersSent) {
+        return;
+    }
+
+    const files = await uploadsController.uploadThumb(req, res); // response is handled here
+
+    // Add uploaded files to topic zset
+    if (files && files.length) {
+        await Promise.all(files.map(async (fileObj) => {
+            await topics.thumbs.associate({
+                id: req.params.tid,
+                path: fileObj.path || fileObj.url,
+            });
+        }));
+    }
+};
+
+export const migrateThumbs = async (req: ExtendedRequest, res: Response) => {
+    await Promise.all([
+        checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res }),
+        checkThumbPrivileges({ tid: req.body.tid, uid: req.user.uid, res }),
+    ]);
+    if (res.headersSent) {
+        return;
+    }
+
+    await topics.thumbs.migrate(req.params.tid, req.body.tid);
+    await helpers.formatApiResponse(200, res);
+};
+
+export const deleteThumb = async (req: ExtendedRequest, res: Response) => {
+    if (!req.body.path.startsWith('http')) {
+        await middleware.assert.path(req, res, () => { });
+        if (res.headersSent) {
+            return;
+        }
+    }
+
+    await checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res });
+    if (res.headersSent) {
+        return;
+    }
+
+    await topics.thumbs.delete(req.params.tid, req.body.path);
+    await helpers.formatApiResponse(200, res, await topics.thumbs.get(req.params.tid));
+};
+
+export const reorderThumbs = async (req: ExtendedRequest, res: Response) => {
+    await checkThumbPrivileges({ tid: req.params.tid, uid: req.user.uid, res });
+    if (res.headersSent) {
+        return;
+    }
+
+    const exists = await topics.thumbs.exists(req.params.tid, req.body.path);
+    if (!exists) {
+        return helpers.formatApiResponse(404, res);
+    }
+
+    await topics.thumbs.associate({
+        id: req.params.tid,
+        path: req.body.path,
+        score: req.body.order,
+    });
+    await helpers.formatApiResponse(200, res);
+};
+
+export const getEvents = async (req: ExtendedRequest, res: Response) => {
     if (!await privileges.topics.can('topics:read', req.params.tid, req.uid)) {
         return helpers.formatApiResponse(403, res);
     }
@@ -319,7 +332,7 @@ export const getEvents = async (req, res) => {
     await helpers.formatApiResponse(200, res, await topics.events.get(req.params.tid, req.uid));
 };
 
-export const deleteEvent = async (req, res) => {
+export const deleteEvent = async (req: ExtendedRequest, res: Response) => {
     if (!await privileges.topics.isAdminOrMod(req.params.tid, req.uid)) {
         return helpers.formatApiResponse(403, res);
     }
