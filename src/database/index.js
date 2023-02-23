@@ -1,6 +1,6 @@
 'use strict';
 
-import nconf from 'nconf';
+const nconf = require('nconf');
 
 const databaseName = nconf.get('database');
 const winston = require('winston');
