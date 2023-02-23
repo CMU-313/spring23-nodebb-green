@@ -14,7 +14,7 @@ import uploadsController from '../uploads';
 
 import { TopicData, TagObject } from '../../types';
 
-
+interface Validator { isUUID: (str: string, version?: validator.UUIDVersion) => boolean; }
 interface ExtendedRequest extends Request {
     uid: number;
     sessionID: number;
@@ -104,7 +104,7 @@ export const deleteTopic = async (req: ExtendedRequest, res: Response) => {
     await helpers.formatApiResponse(200, res);
 };
 
-async function resolveTopic(tid, uid) {
+async function resolveTopic(tid, uid: number) {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const topicData = await topics.getTopicFields(tid, ['tid', 'uid', 'cid']) as TopicData;
@@ -223,7 +223,7 @@ export const addTags = async (req: ExtendedRequest, res: Response) => {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const tags = await topics.filterTags(req.body.tags) as Tag[];
+    const tags = await topics.filterTags(req.body.tags) as TagObject[];
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -264,7 +264,7 @@ export const getThumbs = async (req: ExtendedRequest, res: Response) => {
 async function checkThumbPrivileges({ tid, uid, res }: { tid: string, uid: number, res: Response }) {
     // req.params.tid could be either a tid (pushing a new thumb to an existing topic)
     // or a post UUID (a new topic being composed)
-    const isUUID = validator.isUUID(tid) as boolean;
+    const isUUID = (validator as Validator).isUUID(tid);
 
     // Sanity-check the tid if it's strictly not a uuid
     if (!isUUID && (isNaN(parseInt(tid, 10)) || !await topics.exists(tid))) {
