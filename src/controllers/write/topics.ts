@@ -12,15 +12,30 @@ import helpers from '../helpers';
 import middleware from '../../middleware';
 import uploadsController from '../uploads';
 
+interface Tag {
+    value: string;
+    valueEscaped: string;
+    color: string;
+    bgColor: string;
+    score: number;
+}
+
 interface ExtendedRequest extends Request {
     uid: number;
     sessionID: number;
     user?: {
         uid: number
     };
-    body?: {
-        expiry: boolean
+    body: {
+        expiry: boolean;
+        tags: Tag[];
+        path: string;
+        tid: string;
     }
+}
+
+interface Payload {
+    queued: boolean;
 }
 
 export const get = async (req: ExtendedRequest, res: Response) => {
@@ -47,7 +62,7 @@ export const create = async (req: ExtendedRequest, res: Response) => {
     try {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const payload = await api.topics.create(req, req.body);
+        const payload = await api.topics.create(req, req.body) as Payload;
         if (payload.queued) {
             await helpers.formatApiResponse(202, res, payload);
         } else {
@@ -65,7 +80,7 @@ export const reply = async (req: ExtendedRequest, res: Response) => {
     try {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const payload = await api.topics.reply(req, { ...req.body, tid: req.params.tid });
+        const payload = await api.topics.reply(req, { ...req.body, tid: req.params.tid }) as Payload;
         await helpers.formatApiResponse(200, res, payload);
     } finally {
         // The next line calls a function in a module that has not been updated to TS yet
@@ -78,12 +93,6 @@ export const deleteTopic = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.delete(req, { tids: [req.params.tid] });
-    await helpers.formatApiResponse(200, res);
-};
-
-// added resolved field
-export const resolve = async (req: ExtendedRequest, res: Response) => {
-    await resolveTopic(req.params.tid, req.uid);
     await helpers.formatApiResponse(200, res);
 };
 
@@ -113,6 +122,12 @@ async function resolveTopic(tid, uid) {
     await plugins.hooks.fire('action:topic.resolve', { topic: _.clone(topicData), uid: uid });
     return topicData;
 }
+
+// added resolved field
+export const resolve = async (req: ExtendedRequest, res: Response) => {
+    await resolveTopic(req.params.tid, req.uid);
+    await helpers.formatApiResponse(200, res);
+};
 
 export const restore = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
@@ -200,7 +215,7 @@ export const addTags = async (req: ExtendedRequest, res: Response) => {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const tags = await topics.filterTags(req.body.tags);
+    const tags = await topics.filterTags(req.body.tags) as Tag[];
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -238,10 +253,10 @@ export const getThumbs = async (req: ExtendedRequest, res: Response) => {
     await helpers.formatApiResponse(200, res, await topics.thumbs.get(req.params.tid));
 };
 
-async function checkThumbPrivileges({ tid, uid, res }) {
+async function checkThumbPrivileges({ tid, uid, res }: { tid: string, uid: number, res: Response }) {
     // req.params.tid could be either a tid (pushing a new thumb to an existing topic)
     // or a post UUID (a new topic being composed)
-    const isUUID = validator.isUUID(tid);
+    const isUUID = validator.isUUID(tid) as boolean;
 
     // Sanity-check the tid if it's strictly not a uuid
     if (!isUUID && (isNaN(parseInt(tid, 10)) || !await topics.exists(tid))) {
