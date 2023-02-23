@@ -12,15 +12,8 @@ import helpers from '../helpers';
 import middleware from '../../middleware';
 import uploadsController from '../uploads';
 
-import { TopicData } from '../../types';
+import { TopicData, TagObject } from '../../types';
 
-interface Tag {
-    value: string;
-    valueEscaped: string;
-    color: string;
-    bgColor: string;
-    score: number;
-}
 
 interface ExtendedRequest extends Request {
     uid: number;
@@ -30,7 +23,7 @@ interface ExtendedRequest extends Request {
     };
     body: {
         expiry: boolean;
-        tags: Tag[];
+        tags: TagObject[];
         path: string;
         tid: string | number;
         order: number;
