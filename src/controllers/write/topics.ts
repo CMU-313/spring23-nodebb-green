@@ -14,7 +14,7 @@ import uploadsController from '../uploads';
 export const get = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    helpers.formatApiResponse(200, res, await api.topics.get(req, req.params));
+    await helpers.formatApiResponse(200, res, await api.topics.get(req, req.params));
 };
 
 export const create = async (req, res) => {
@@ -24,24 +24,10 @@ export const create = async (req, res) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const payload = await api.topics.create(req, req.body);
         if (payload.queued) {
-            helpers.formatApiResponse(202, res, payload);
+            await helpers.formatApiResponse(202, res, payload);
         } else {
-            helpers.formatApiResponse(200, res, payload);
+            await helpers.formatApiResponse(200, res, payload);
         }
-    } finally {
-        // The next line calls a function in a module that has not been updated to TS yet
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        await db.deleteObjectField('locks', id);
-    }
-};
-
-export const reply = async (req, res) => {
-    const id = await lockPosting(req, '[[error:already-posting]]');
-    try {
-        // The next line calls a function in a module that has not been updated to TS yet
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const payload = await api.topics.reply(req, { ...req.body, tid: req.params.tid });
-        helpers.formatApiResponse(200, res, payload);
     } finally {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -62,17 +48,31 @@ async function lockPosting(req, error) {
     return value;
 }
 
+export const reply = async (req, res) => {
+    const id = await lockPosting(req, '[[error:already-posting]]');
+    try {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const payload = await api.topics.reply(req, { ...req.body, tid: req.params.tid });
+        await helpers.formatApiResponse(200, res, payload);
+    } finally {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        await db.deleteObjectField('locks', id);
+    }
+};
+
 export const deleteTopic = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.delete(req, { tids: [req.params.tid] });
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 // added resolved field
 export const resolve = async (req, res) => {
     await resolveTopic(req.params.tid, req.uid);
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 async function resolveTopic(tid, uid) {
@@ -98,7 +98,7 @@ async function resolveTopic(tid, uid) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    plugins.hooks.fire('action:topic.resolve', { topic: _.clone(topicData), uid: uid });
+    await plugins.hooks.fire('action:topic.resolve', { topic: _.clone(topicData), uid: uid });
     return topicData;
 }
 
@@ -107,14 +107,14 @@ export const restore = async (req, res) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.restore(req, { tids: [req.params.tid] });
 
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const purge = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.purge(req, { tids: [req.params.tid] });
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const pin = async (req, res) => {
@@ -128,49 +128,49 @@ export const pin = async (req, res) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.pin(req, { tids: [req.params.tid] });
 
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const unpin = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.unpin(req, { tids: [req.params.tid] });
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const lock = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.lock(req, { tids: [req.params.tid] });
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const unlock = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.unlock(req, { tids: [req.params.tid] });
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const follow = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.follow(req, req.params);
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const ignore = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.ignore(req, req.params);
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const unfollow = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await api.topics.unfollow(req, req.params);
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const addTags = async (req, res) => {
@@ -193,7 +193,7 @@ export const addTags = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await topics.addTags(tags, [req.params.tid]);
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const deleteTags = async (req, res) => {
@@ -204,7 +204,7 @@ export const deleteTags = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await topics.deleteTopicTags(req.params.tid);
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const getThumbs = async (req, res) => {
@@ -222,7 +222,7 @@ export const getThumbs = async (req, res) => {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    helpers.formatApiResponse(200, res, await topics.thumbs.get(req.params.tid));
+    await helpers.formatApiResponse(200, res, await topics.thumbs.get(req.params.tid));
 };
 
 export const addThumb = async (req, res) => {
@@ -254,7 +254,7 @@ export const migrateThumbs = async (req, res) => {
     }
 
     await topics.thumbs.migrate(req.params.tid, req.body.tid);
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 export const deleteThumb = async (req, res) => {
@@ -271,7 +271,7 @@ export const deleteThumb = async (req, res) => {
     }
 
     await topics.thumbs.delete(req.params.tid, req.body.path);
-    helpers.formatApiResponse(200, res, await topics.thumbs.get(req.params.tid));
+    await helpers.formatApiResponse(200, res, await topics.thumbs.get(req.params.tid));
 };
 
 export const reorderThumbs = async (req, res) => {
@@ -290,7 +290,7 @@ export const reorderThumbs = async (req, res) => {
         path: req.body.path,
         score: req.body.order,
     });
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
 
 async function checkThumbPrivileges({ tid, uid, res }) {
@@ -316,7 +316,7 @@ export const getEvents = async (req, res) => {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    helpers.formatApiResponse(200, res, await topics.events.get(req.params.tid, req.uid));
+    await helpers.formatApiResponse(200, res, await topics.events.get(req.params.tid, req.uid));
 };
 
 export const deleteEvent = async (req, res) => {
@@ -328,5 +328,5 @@ export const deleteEvent = async (req, res) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await topics.events.purge(req.params.tid, [req.params.eventId]);
 
-    helpers.formatApiResponse(200, res);
+    await helpers.formatApiResponse(200, res);
 };
