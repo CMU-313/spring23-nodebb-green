@@ -17,7 +17,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setActivePostSharingNetworks = exports.getActivePostSharing = exports.getPostSharing = void 0;
 const lodash_1 = __importDefault(require("lodash"));
 const plugins_1 = __importDefault(require("./plugins"));
-const database_1 = __importDefault(require("./database"));
+exports.default = db;
 let postSharing = null;
 function getPostSharing() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -41,7 +41,7 @@ function getPostSharing() {
         networks = (yield plugins_1.default.hooks.fire('filter:social.posts', networks));
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const activated = yield database_1.default.getSetMembers('social:posts.activated');
+        const activated = yield db.getSetMembers('social:posts.activated');
         networks.forEach((network) => {
             network.activated = activated.includes(network.id);
         });
@@ -62,13 +62,13 @@ function setActivePostSharingNetworks(networkIDs) {
         postSharing = null;
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        yield database_1.default.delete('social:posts.activated');
+        yield db.delete('social:posts.activated');
         if (!networkIDs.length) {
             return;
         }
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        yield database_1.default.setAdd('social:posts.activated', networkIDs);
+        yield db.setAdd('social:posts.activated', networkIDs);
     });
 }
 exports.setActivePostSharingNetworks = setActivePostSharingNetworks;

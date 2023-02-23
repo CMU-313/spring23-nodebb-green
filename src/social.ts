@@ -3,7 +3,8 @@
 
 import _ from 'lodash';
 import plugins from './plugins';
-import db from './database';
+export default db;
+// import db from './database';
 
 import { Network } from './types';
 
