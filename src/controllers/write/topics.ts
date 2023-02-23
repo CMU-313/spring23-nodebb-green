@@ -31,6 +31,7 @@ interface ExtendedRequest extends Request {
         tags: Tag[];
         path: string;
         tid: string;
+        order: number;
     }
 }
 
@@ -303,7 +304,7 @@ export const migrateThumbs = async (req: ExtendedRequest, res: Response) => {
 
 export const deleteThumb = async (req: ExtendedRequest, res: Response) => {
     if (!req.body.path.startsWith('http')) {
-        await middleware.assert.path(req, res, () => { });
+        middleware.assert.path(req, res, () => { console.log('complete'); });
         if (res.headersSent) {
             return;
         }
@@ -324,7 +325,7 @@ export const reorderThumbs = async (req: ExtendedRequest, res: Response) => {
         return;
     }
 
-    const exists = await topics.thumbs.exists(req.params.tid, req.body.path);
+    const exists = await topics.thumbs.exists(req.params.tid, req.body.path) as boolean;
     if (!exists) {
         return helpers.formatApiResponse(404, res);
     }
