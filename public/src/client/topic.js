@@ -64,6 +64,7 @@ define('forum/topic', [
         addPostsPreviewHandler();
 
         handleBookmark(tid);
+        handleResolve(tid);
 
         $(window).on('scroll', utils.debounce(updateTopicTitle, 250));
 
@@ -75,7 +76,7 @@ define('forum/topic', [
     function handleResolve(tid) {
         $('[component="topic/resolve"]')[0].addEventListener('click', function () {
             console.log('clicked');
-            api.put(`/topics/${tid}/resolve`).then((res) => {
+            api.put(`/topics/${tid}/resolve`).then(() => {
                 location.reload();
             });
         });
