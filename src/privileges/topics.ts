@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 // 'use strict';
 
 // import _ from 'lodash';
@@ -15,13 +14,12 @@ import privsCategories from './categories';
 interface Privileges {
     view_deleted?: boolean;
     view_scheduled?: boolean;
+    [key: string]: unknown;
 }
 interface Topic {
     deleted?: boolean;
     scheduled?: boolean;
-}
-interface topicData {
-    deleterUid? : number
+    [key: string]: unknown;
 }
 export function canViewDeletedScheduled(topic: Topic, privileges = {} as Privileges,
     viewDeleted = false, viewScheduled = false): boolean {
@@ -59,8 +57,8 @@ export async function get(tid, uid) {
     const disabled: boolean = await new Promise(categories.getCategoryField(topicData.cid, 'disabled'));
     const privData = _.zipObject(privs, userPrivileges as _.List<unknown>);
     const isOwner: boolean = uid > 0 && uid === (topicData.uid as number);
-    const isAdminOrMod_data: boolean = isAdministrator || isModerator;
-    const editable: boolean = isAdminOrMod_data;
+    const isAdminOrMod: boolean = isAdministrator || isModerator;
+    const editable: boolean = isAdminOrMod;
     const deletable: boolean = (privData['topics:delete'] && (isOwner || isModerator)) || isAdministrator;
     const mayReply: boolean = canViewDeletedScheduled(topicData as Topic, {}, false, privData['topics:schedule'] as boolean);
 
@@ -81,13 +79,13 @@ export async function get(tid, uid) {
         view_thread_tools: editable || deletable,
         editable: editable,
         deletable: deletable,
-        view_deleted: isAdminOrMod_data || isOwner || privData['posts:view_deleted'],
+        view_deleted: isAdminOrMod || isOwner || privData['posts:view_deleted'],
         view_scheduled: privData['topics:schedule'] || isAdministrator,
-        isAdminOrMod: isAdminOrMod_data,
+        isAdminOrMod: isAdminOrMod,
         disabled: disabled,
         tid: tid as number,
         uid: uid as number,
-        viewable: isAdminOrMod_data || isOwner || !topicData.privateTopic,
+        viewable: isAdminOrMod || isOwner || !topicData.privateTopic,
     });
 }
 
@@ -98,7 +96,7 @@ export async function can(privilege, tid, uid) {
     return await privsCategories.can(privilege, cid, uid);
 }
 
-export async function filterTids(privilege, tids, uid): Promise<number []> {
+export async function filterTids(privilege, tids, uid) {
     if (!Array.isArray(tids) || !tids.length) {
         return [];
     }
@@ -120,13 +118,14 @@ export async function filterTids(privilege, tids, uid): Promise<number []> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const canViewScheduled = _.zipObject(cids as _.List<_.PropertyName>, results.view_scheduled);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    // eslint-disable-next-line max-len
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     tids = topicsData.filter(t => (
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         cidsSet.has(t.cid) &&
         // eslint-disable-next-line max-len
         (results.isAdmin || canViewDeletedScheduled(t as Topic, {}, canViewDeleted[t.cid] as boolean, canViewScheduled[t.cid] as boolean))
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     )).map(t => t.tid);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -149,26 +148,29 @@ export async function filterUids(privilege, tid, uids) {
     const topicData = await topics.getTopicFields(tid, ['tid', 'cid', 'deleted', 'scheduled']);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const [disabled, allowedTo, isAdmins] = await Promise.all([
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         categories.getCategoryField(topicData.cid, 'disabled'),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         helpers.isUsersAllowedTo(privilege, uids, topicData.cid),
         user.isAdministrator(uids),
     ]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (topicData.scheduled) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const canViewScheduled = await helpers.isUsersAllowedTo('topics:schedule', uids, topicData.cid);
         // eslint-disable-next-line max-len
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         uids = uids.filter((uid, index) => canViewScheduled[index]);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+    // eslint-disable-next-line max-len
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return uids.filter((uid, index) => !disabled &&
             ((allowedTo[index] && (topicData.scheduled || !topicData.deleted)) || isAdmins[index]));
 }
 
-export async function canPurge(tid, uid): Promise<boolean> {
+export async function canPurge(tid, uid) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const cid = await topics.getTopicField(tid, 'cid');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -182,7 +184,7 @@ export async function canPurge(tid, uid): Promise<boolean> {
     return (purge as boolean && (owner as boolean || isModerator as boolean)) || isAdmin as boolean;
 }
 
-export async function canDelete(tid, uid): Promise<boolean> {
+export async function canDelete(tid, uid) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const topicData = await topics.getTopicFields(tid, ['uid', 'cid', 'postcount', 'deleterUid']);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -208,12 +210,13 @@ export async function canDelete(tid, uid): Promise<boolean> {
         throw new Error(langKey);
     }
 
-    const { deleterUid } = topicData as topicData;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { deleterUid } = topicData;
     return allowedTo[0] as boolean && ((isOwner as boolean &&
         (deleterUid === 0 || deleterUid === topicData.uid)) || isModerator as boolean);
 }
 
-export async function isAdminOrMod(tid: string, uid): Promise<boolean> {
+export async function isAdminOrMod(tid: string, uid) {
     if (parseInt(uid as string, 10) <= 0) {
         return false;
     }
@@ -222,7 +225,7 @@ export async function isAdminOrMod(tid: string, uid): Promise<boolean> {
     return await privsCategories.isAdminOrMod(cid, uid) as boolean;
 }
 
-export async function isOwnerOrAdminOrMod(tid, uid): Promise<boolean> {
+export async function isOwnerOrAdminOrMod(tid, uid) {
     const [isOwner, isAdminOrMod_data] = await Promise.all([
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         topics.isOwner(tid, uid) as boolean,
