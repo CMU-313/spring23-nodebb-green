@@ -81,21 +81,6 @@ describe('Topic\'s', () => {
             });
         });
 
-        it('should create a new private topic', (done) => {
-            topics.post({
-                uid: topic.userId,
-                title: topic.title,
-                content: topic.content,
-                cid: topic.categoryId,
-                privateTopic: true,
-            }, (err, result) => {
-                assert.ifError(err);
-                assert(result);
-                topic.tid = result.topicData.tid;
-                done();
-            });
-        });
-
         it('should get post count', (done) => {
             socketTopics.postcount({ uid: adminUid }, topic.tid, (err, count) => {
                 assert.ifError(err);
@@ -398,7 +383,6 @@ describe('Topic\'s', () => {
                 assert.strictEqual(topicData.deleted, 0);
                 assert.strictEqual(topicData.locked, 0);
                 assert.strictEqual(topicData.pinned, 0);
-                assert.strictEqual(topicData.privateTopic, false);
                 done();
             });
         });
@@ -448,7 +432,6 @@ describe('Topic\'s', () => {
                 assert.equal(data.deleted, false);
                 assert.equal(data.locked, false);
                 assert.equal(data.pinned, false);
-                assert.equal(data.privateTopic, false);
             });
 
             it('should return first 3 posts including main post', async () => {
