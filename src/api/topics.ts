@@ -55,7 +55,7 @@ type QueueResult = {
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 export async function get(caller: Caller, data: Data) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const [userPrivileges, topic]: [privileges, TopicObject] = await Promise.all([
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         privileges.topics.get(data.tid, caller.uid),
@@ -68,7 +68,7 @@ export async function get(caller: Caller, data: Data) {
         !userPrivileges.read ||
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         !userPrivileges['topics:read'] ||
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
         !privileges.topics.canViewDeletedScheduled(topic, userPrivileges)
     ) {
         return null;
@@ -116,11 +116,11 @@ export async function create(caller: Caller, data: Data) {
     await topics.thumbs.migrate(data.uuid, result.topicData.tid);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    socketHelpers.emitToUids('event:new_post', { posts: [result.postData] }, [caller.uid]);
+    await socketHelpers.emitToUids('event:new_post', { posts: [result.postData] }, [caller.uid]);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    socketHelpers.emitToUids('event:new_topic', result.topicData, [caller.uid]);
+    await socketHelpers.emitToUids('event:new_topic', result.topicData, [caller.uid]);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    socketHelpers.notifyNew(caller.uid, 'newTopic', { posts: [result.postData], topic: result.topicData });
+    await socketHelpers.notifyNew(caller.uid, 'newTopic', { posts: [result.postData], topic: result.topicData });
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     return result.topicData;
@@ -164,7 +164,7 @@ export async function reply(caller: Caller, data: Data) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     if (caller.uid) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        socketHelpers.emitToUids('event:new_post', result, [caller.uid]);
+        await socketHelpers.emitToUids('event:new_post', result, [caller.uid]);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     } else if (caller.uid === 0) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -172,7 +172,7 @@ export async function reply(caller: Caller, data: Data) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    socketHelpers.notifyNew(caller.uid, 'newPost', result) as Promise<void>;
+    await socketHelpers.notifyNew(caller.uid, 'newPost', result);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     return postObj[0];

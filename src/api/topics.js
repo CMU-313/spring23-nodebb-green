@@ -23,7 +23,7 @@ const { doTopicAction } = apiHelpers;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 function get(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         const [userPrivileges, topic] = yield Promise.all([
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             privileges.topics.get(data.tid, caller.uid),
@@ -35,7 +35,7 @@ function get(caller, data) {
             !userPrivileges.read ||
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             !userPrivileges['topics:read'] ||
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
             !privileges.topics.canViewDeletedScheduled(topic, userPrivileges)) {
             return null;
         }
@@ -80,11 +80,11 @@ function create(caller, data) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         yield topics.thumbs.migrate(data.uuid, result.topicData.tid);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        socketHelpers.emitToUids('event:new_post', { posts: [result.postData] }, [caller.uid]);
+        yield socketHelpers.emitToUids('event:new_post', { posts: [result.postData] }, [caller.uid]);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        socketHelpers.emitToUids('event:new_topic', result.topicData, [caller.uid]);
+        yield socketHelpers.emitToUids('event:new_topic', result.topicData, [caller.uid]);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        socketHelpers.notifyNew(caller.uid, 'newTopic', { posts: [result.postData], topic: result.topicData });
+        yield socketHelpers.notifyNew(caller.uid, 'newTopic', { posts: [result.postData], topic: result.topicData });
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         return result.topicData;
     });
@@ -125,7 +125,7 @@ function reply(caller, data) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         if (caller.uid) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            socketHelpers.emitToUids('event:new_post', result, [caller.uid]);
+            yield socketHelpers.emitToUids('event:new_post', result, [caller.uid]);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         }
         else if (caller.uid === 0) {
@@ -133,7 +133,7 @@ function reply(caller, data) {
             websockets.in('online_guests').emit('event:new_post', result);
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        socketHelpers.notifyNew(caller.uid, 'newPost', result);
+        yield socketHelpers.notifyNew(caller.uid, 'newPost', result);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         return postObj[0];
     });
