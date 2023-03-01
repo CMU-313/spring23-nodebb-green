@@ -92,6 +92,7 @@ describe('Topic\'s', () => {
                 assert.ifError(err);
                 assert(result);
                 topic.tid = result.topicData.tid;
+                assert.equal(result.topicData.privateTopic, true);
                 done();
             });
         });
