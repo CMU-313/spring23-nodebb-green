@@ -97,18 +97,17 @@ describe('Topic\'s', () => {
             });
         });
 
-        it('should create a new resolved post', (done) => {
+        it('should create an unresolved post by default', (done) => {
             topics.post({
                 uid: topic.userId,
                 title: topic.title,
                 content: topic.content,
                 cid: topic.categoryId,
-                resolve: true,
             }, (err, result) => {
                 assert.ifError(err);
                 assert(result);
                 topic.tid = result.topicData.tid;
-                assert.equal(result.topicData.resolve, true);
+                assert.equal(result.topicData.resolve, false);
                 done();
             });
         });
