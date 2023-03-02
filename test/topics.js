@@ -97,6 +97,22 @@ describe('Topic\'s', () => {
             });
         });
 
+        it('should create a new resolved post', (done) => {
+            topics.post({
+                uid: topic.userId,
+                title: topic.title,
+                content: topic.content,
+                cid: topic.categoryId,
+                resolve: true,
+            }, (err, result) => {
+                assert.ifError(err);
+                assert(result);
+                topic.tid = result.topicData.tid;
+                assert.equal(result.topicData.resolve, true);
+                done();
+            });
+        });
+
         it('should get post count', (done) => {
             socketTopics.postcount({ uid: adminUid }, topic.tid, (err, count) => {
                 assert.ifError(err);
@@ -400,6 +416,7 @@ describe('Topic\'s', () => {
                 assert.strictEqual(topicData.locked, 0);
                 assert.strictEqual(topicData.pinned, 0);
                 assert.strictEqual(topicData.privateTopic, false);
+                assert.strictEqual(topicData.resolve, false);
                 done();
             });
         });
