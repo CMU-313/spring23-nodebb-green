@@ -9,7 +9,9 @@ const { setupApiRoute } = routeHelpers;
 export default function () {
     const middlewares = [middleware.ensureLoggedIn];
 
-    const multipartMiddleware = multipart();
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const multipartMiddleware = multipart() as (any) => void;
 
     setupApiRoute(router, 'post', '/', [middleware.checkRequired.bind(null, ['cid', 'title', 'content'])], controllers.write.topics.create);
     setupApiRoute(router, 'get', '/:tid', [], controllers.write.topics.get);
@@ -46,4 +48,4 @@ export default function () {
     setupApiRoute(router, 'delete', '/:tid/events/:eventId', [middleware.assert.topic], controllers.write.topics.deleteEvent);
 
     return router;
-};
+}
