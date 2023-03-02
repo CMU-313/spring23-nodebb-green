@@ -1,17 +1,18 @@
-import { Router as router } from 'express';
+import imported_router from 'express';
 import multipart from 'connect-multiparty';
 import middleware from '../../middleware';
 import controllers from '../../controllers';
 import routeHelpers from '../helpers';
 
+const router = imported_router.Router();
 const { setupApiRoute } = routeHelpers;
 
 export default function () {
     const middlewares = [middleware.ensureLoggedIn];
 
-    // The next line calls a function in a module that has not been updated to TS yet
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const multipartMiddleware = multipart() as (any) => void;
+    // The next line calls a function a module that has not been updated to typescript yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    const multipartMiddleware = multipart();
 
     setupApiRoute(router, 'post', '/', [middleware.checkRequired.bind(null, ['cid', 'title', 'content'])], controllers.write.topics.create);
     setupApiRoute(router, 'get', '/:tid', [], controllers.write.topics.get);
