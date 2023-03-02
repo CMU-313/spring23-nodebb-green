@@ -2,7 +2,6 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const connect_multiparty_1 = __importDefault(require("connect-multiparty"));
 const middleware_1 = __importDefault(require("../../middleware"));
@@ -10,7 +9,7 @@ const controllers_1 = __importDefault(require("../../controllers"));
 const helpers_1 = __importDefault(require("../helpers"));
 const router = express_1.default.Router();
 const { setupApiRoute } = helpers_1.default;
-function default_1() {
+module.exports = function () {
     const middlewares = [middleware_1.default.ensureLoggedIn];
     // The next line calls a function a module that has not been updated to typescript yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
@@ -41,5 +40,4 @@ function default_1() {
     setupApiRoute(router, 'get', '/:tid/events', [middleware_1.default.assert.topic], controllers_1.default.write.topics.getEvents);
     setupApiRoute(router, 'delete', '/:tid/events/:eventId', [middleware_1.default.assert.topic], controllers_1.default.write.topics.deleteEvent);
     return router;
-}
-exports.default = default_1;
+};

@@ -7,7 +7,7 @@ import routeHelpers from '../helpers';
 const router = imported_router.Router();
 const { setupApiRoute } = routeHelpers;
 
-export default function () {
+export = function () {
     const middlewares = [middleware.ensureLoggedIn];
 
     // The next line calls a function a module that has not been updated to typescript yet
