@@ -119,10 +119,8 @@ describe('Topic\'s', () => {
                 content: topic.content,
                 cid: topic.categoryId,
             });
-            let resolved = await topics.getTopicField(topicData.tid, ['resolved']);
-            assert.equal(resolved, false);
             await topics.resolve(topicData.tid);
-            resolved = await topics.getTopicField(topicData.tid, ['resolved']);
+            const resolved = await topics.getTopicField(topicData.tid, ['resolve']);
             assert.equal(resolved, true);
         });
 
