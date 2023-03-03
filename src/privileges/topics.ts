@@ -47,33 +47,33 @@ export async function get(tid: string, uid: string | number): Promise<TopicObjec
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const TopicObject = await topics.getTopicFields(tid, ['cid', 'uid', 'locked', 'deleted', 'scheduled']) as TopicObject;
+    const topicData = await topics.getTopicFields(tid, ['cid', 'uid', 'locked', 'deleted', 'scheduled']) as TopicObject;
     const [userPrivileges, isAdministrator, isModerator, disabled] = await Promise.all([
-        helpers.isAllowedTo(privs, uid, TopicObject.cid) as boolean[],
+        helpers.isAllowedTo(privs, uid, topicData.cid) as boolean[],
         user.isAdministrator(uid) as boolean,
-        user.isModerator(uid, TopicObject.cid) as boolean,
+        user.isModerator(uid, topicData.cid) as boolean,
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        categories.getCategoryField(TopicObject.cid, 'disabled') as boolean,
+        categories.getCategoryField(topicData.cid, 'disabled') as boolean,
     ]);
     const privData = _.zipObject(privs, userPrivileges);
-    const isOwner = uid > 0 && uid === TopicObject.uid;
+    const isOwner = uid > 0 && uid === topicData.uid;
     const isAdminOrMod = isAdministrator || isModerator;
     const editable = isAdminOrMod;
     const deletable = (privData['topics:delete'] && (isOwner || isModerator)) || isAdministrator;
-    const mayReply = canViewDeletedScheduled(TopicObject, {}, false, privData['topics:schedule']);
+    const mayReply = canViewDeletedScheduled(topicData, {}, false, privData['topics:schedule']);
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     return await plugins.hooks.fire('filter:privileges.topics.get', {
-        'topics:reply': (privData['topics:reply'] && ((!TopicObject.locked && mayReply) || isModerator)) || isAdministrator,
+        'topics:reply': (privData['topics:reply'] && ((!topicData.locked && mayReply) || isModerator)) || isAdministrator,
         'topics:read': privData['topics:read'] || isAdministrator,
         'topics:schedule': privData['topics:schedule'] || isAdministrator,
         'topics:tag': privData['topics:tag'] || isAdministrator,
         'topics:delete': (privData['topics:delete'] && (isOwner || isModerator)) || isAdministrator,
-        'posts:edit': (privData['posts:edit'] && (!TopicObject.locked || isModerator)) || isAdministrator,
+        'posts:edit': (privData['posts:edit'] && (!topicData.locked || isModerator)) || isAdministrator,
         'posts:history': privData['posts:history'] || isAdministrator,
-        'posts:delete': (privData['posts:delete'] && (!TopicObject.locked || isModerator)) || isAdministrator,
+        'posts:delete': (privData['posts:delete'] && (!topicData.locked || isModerator)) || isAdministrator,
         'posts:view_deleted': privData['posts:view_deleted'] || isAdministrator,
         read: privData.read || isAdministrator,
         purge: (privData.purge && (isOwner || isModerator)) || isAdministrator,
@@ -88,7 +88,7 @@ export async function get(tid: string, uid: string | number): Promise<TopicObjec
         tid: tid,
         uid: uid,
         resolveable: isAdminOrMod || isOwner,
-        viewable: isAdminOrMod || isOwner || !TopicObject.privateTopic,
+        viewable: isAdminOrMod || isOwner || !topicData.privateTopic,
     }) as TopicObject;
 }
 
@@ -136,80 +136,127 @@ export async function filterTids(privilege: string, tids: (string | number)[], u
     return data ? data.tids : [];
 }
 
-export async function filterUids(privilege, tid, uids) {
+export async function filterUids(privilege: string, tid: (string | number), uids: (number | string)[]) {
     if (!Array.isArray(uids) || !uids.length) {
         return [];
     }
 
     uids = _.uniq(uids);
-    const TopicObject = await topics.getTopicFields(tid, ['tid', 'cid', 'deleted', 'scheduled']);
+
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const topicData = await topics.getTopicFields(tid, ['tid', 'cid', 'deleted', 'scheduled']) as TopicObject;
     const [disabled, allowedTo, isAdmins] = await Promise.all([
-        categories.getCategoryField(TopicObject.cid, 'disabled'),
-        helpers.isUsersAllowedTo(privilege, uids, TopicObject.cid),
-        user.isAdministrator(uids),
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        categories.getCategoryField(topicData.cid, 'disabled') as boolean[],
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        helpers.isUsersAllowedTo(privilege, uids, topicData.cid) as boolean[],
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        user.isAdministrator(uids) as boolean[],
     ]);
 
-    if (TopicObject.scheduled) {
-        const canViewScheduled = await helpers.isUsersAllowedTo('topics:schedule', uids, TopicObject.cid);
+    if (topicData.scheduled) {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const canViewScheduled = await helpers.isUsersAllowedTo('topics:schedule', uids, topicData.cid) as { [key: number]: boolean };
         uids = uids.filter((uid, index) => canViewScheduled[index]);
     }
 
     return uids.filter((uid, index) => !disabled &&
-        ((allowedTo[index] && (TopicObject.scheduled || !TopicObject.deleted)) || isAdmins[index]));
-};
+        ((allowedTo[index] && (topicData.scheduled || !topicData.deleted)) || isAdmins[index]));
+}
 
-export async function canPurge(tid, uid) {
-    const cid = await topics.getTopicField(tid, 'cid');
+export async function canPurge(tid: (number | string), uid: (number | string)) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const cid = await topics.getTopicField(tid, 'cid') as (number | string);
     const [purge, owner, isAdmin, isModerator] = await Promise.all([
-        privsCategories.isUserAllowedTo('purge', cid, uid),
-        topics.isOwner(tid, uid),
-        user.isAdministrator(uid),
-        user.isModerator(uid, cid),
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        privsCategories.isUserAllowedTo('purge', cid, uid) as boolean,
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        topics.isOwner(tid, uid) as boolean,
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        user.isAdministrator(uid) as boolean,
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        user.isModerator(uid, cid) as boolean,
     ]);
-    return (purge && (owner || isModerator)) || isAdmin;
-};
 
-export async function canDelete(tid, uid) {
-    const TopicObject = await topics.getTopicFields(tid, ['uid', 'cid', 'postcount', 'deleterUid']);
+    return (purge && (owner || isModerator)) || isAdmin;
+}
+
+export async function canDelete(tid: (number | string), uid: (number | string)): Promise<boolean> {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const topicData = await topics.getTopicFields(tid, ['uid', 'cid', 'postcount', 'deleterUid']) as TopicObject;
     const [isModerator, isAdministrator, isOwner, allowedTo] = await Promise.all([
-        user.isModerator(uid, TopicObject.cid),
-        user.isAdministrator(uid),
-        topics.isOwner(tid, uid),
-        helpers.isAllowedTo('topics:delete', uid, [TopicObject.cid]),
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        user.isModerator(uid, topicData.cid) as boolean,
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        user.isAdministrator(uid) as boolean,
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        topics.isOwner(tid, uid) as boolean,
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        helpers.isAllowedTo('topics:delete', uid, [topicData.cid]) as boolean,
     ]);
 
     if (isAdministrator) {
         return true;
     }
 
-    const { preventTopicDeleteAfterReplies } = meta.config;
-    if (!isModerator && preventTopicDeleteAfterReplies && (TopicObject.postcount - 1) >= preventTopicDeleteAfterReplies) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const { preventTopicDeleteAfterReplies } = meta.config as { preventTopicDeleteAfterReplies: number | null };
+    if (!isModerator && preventTopicDeleteAfterReplies &&
+        (topicData.postcount - 1) >= preventTopicDeleteAfterReplies) {
         const langKey = preventTopicDeleteAfterReplies > 1 ?
-            `[[error:cant-delete-topic-has-replies, ${meta.config.preventTopicDeleteAfterReplies}]]` :
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            `[[error:cant-delete-topic-has-replies, ${meta.config.preventTopicDeleteAfterReplies as string}]]` :
             '[[error:cant-delete-topic-has-reply]]';
         throw new Error(langKey);
     }
 
-    const { deleterUid } = TopicObject;
-    return allowedTo[0] && ((isOwner && (deleterUid === 0 || deleterUid === TopicObject.uid)) || isModerator);
-};
+    const { deleterUid } = topicData;
+    return allowedTo[0] &&
+        ((isOwner && (parseInt(deleterUid, 10) === 0 ||
+            deleterUid === topicData.uid)) || isModerator);
+}
 
-export async function canEdit(tid, uid) {
-    return await privsTopics.isOwnerOrAdminOrMod(tid, uid);
-};
-
-export async function isOwnerOrAdminOrMod(tid, uid) {
-    const [isOwner, isAdminOrMod] = await Promise.all([
-        topics.isOwner(tid, uid),
-        privsTopics.isAdminOrMod(tid, uid),
-    ]);
-    return isOwner || isAdminOrMod;
-};
-
-export async function isAdminOrMod(tid, uid) {
-    if (parseInt(uid, 10) <= 0) {
+export async function isAdminOrMod(tid: (number | string), uid: (number | string)): Promise<boolean> {
+    if (parseInt(uid as string, 10) <= 0) {
         return false;
     }
-    const cid = await topics.getTopicField(tid, 'cid');
-    return await privsCategories.isAdminOrMod(cid, uid);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const cid = await topics.getTopicField(tid, 'cid') as (number | string);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    return await privsCategories.isAdminOrMod(cid, uid) as boolean;
+}
+
+
+export async function isOwnerOrAdminOrMod(tid: (number | string), uid: (number | string)) {
+    const [isOwner, isAdminOrM] = await Promise.all([
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        topics.isOwner(tid, uid) as boolean,
+        isAdminOrMod(tid, uid),
+    ]);
+    return isOwner || isAdminOrM;
+}
+
+
+export async function canEdit(tid: (number | string), uid: (number | string)) {
+    return await isOwnerOrAdminOrMod(tid, uid);
 }
