@@ -34,8 +34,6 @@ export type TopicData = {
   viewcount?: number | string;
   resolve: boolean;
   privateTopic: boolean;
-  deleted: boolean;
-  scheduled: boolean;
   tags?: string | undefined[] | TagObject[];
   content?: string;
   fromQueue?: boolean;
@@ -85,6 +83,8 @@ export type TopicSlimProperties = {
   titleRaw: string;
   locked: string;
   pinned: number;
+  resolve: boolean;
+  privateTopic: boolean;
   timestamp: string;
   timestampISO: number;
   lastposttime: string;
