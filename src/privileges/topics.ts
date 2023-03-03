@@ -7,30 +7,56 @@ import helpers from './helpers';
 import categories from '../categories';
 import plugins from '../plugins';
 import privsCategories from './categories';
-import { CategoryObject, TopicObject } from '../types';
+import { CategoryObject, TopicObject, TopicData } from '../types';
 
-export async function get(tid, uid) {
-    uid = parseInt(uid, 10);
+export function canViewDeletedScheduled(topic: TopicData,
+    privileges: { view_deleted?: boolean, view_scheduled?: boolean } = {},
+    viewDeleted = false, viewScheduled = false) {
+    if (!topic) {
+        return false;
+    }
+    const { deleted = false, scheduled = false } = topic;
+    const { view_deleted = viewDeleted, view_scheduled = viewScheduled } = privileges;
+
+    // conceptually exclusive, scheduled topics deemed to be not deleted (they can only be purged)
+    if (scheduled) {
+        return view_scheduled;
+    } else if (deleted) {
+        return view_deleted;
+    }
+
+    return true;
+}
+
+export async function get(tid: string, uid: string | number): Promise<TopicObject> {
+    uid = parseInt(uid as string, 10);
 
     const privs = [
         'topics:reply', 'topics:read', 'topics:schedule', 'topics:tag',
         'topics:delete', 'posts:edit', 'posts:history',
         'posts:delete', 'posts:view_deleted', 'read', 'purge',
     ];
-    const topicData = await topics.getTopicFields(tid, ['cid', 'uid', 'locked', 'deleted', 'scheduled']);
+
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const topicData = await topics.getTopicFields(tid, ['cid', 'uid', 'locked', 'deleted', 'scheduled']) as TopicData;
     const [userPrivileges, isAdministrator, isModerator, disabled] = await Promise.all([
-        helpers.isAllowedTo(privs, uid, topicData.cid),
-        user.isAdministrator(uid),
-        user.isModerator(uid, topicData.cid),
-        categories.getCategoryField(topicData.cid, 'disabled'),
+        helpers.isAllowedTo(privs, uid, topicData.cid) as boolean[],
+        user.isAdministrator(uid) as boolean,
+        user.isModerator(uid, topicData.cid) as boolean,
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        categories.getCategoryField(topicData.cid, 'disabled') as boolean,
     ]);
     const privData = _.zipObject(privs, userPrivileges);
     const isOwner = uid > 0 && uid === topicData.uid;
     const isAdminOrMod = isAdministrator || isModerator;
     const editable = isAdminOrMod;
     const deletable = (privData['topics:delete'] && (isOwner || isModerator)) || isAdministrator;
-    const mayReply = privsTopics.canViewDeletedScheduled(topicData, {}, false, privData['topics:schedule']);
+    const mayReply = canViewDeletedScheduled(topicData, {}, false, privData['topics:schedule']);
 
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     return await plugins.hooks.fire('filter:privileges.topics.get', {
         'topics:reply': (privData['topics:reply'] && ((!topicData.locked && mayReply) || isModerator)) || isAdministrator,
         'topics:read': privData['topics:read'] || isAdministrator,
@@ -55,8 +81,8 @@ export async function get(tid, uid) {
         uid: uid,
         resolveable: isAdminOrMod || isOwner,
         viewable: isAdminOrMod || isOwner || !topicData.privateTopic,
-    });
-};
+    }) as TopicObject;
+}
 
 export async function can(privilege, tid, uid) {
     const cid = await topics.getTopicField(tid, 'cid');
@@ -170,21 +196,4 @@ export async function isAdminOrMod(tid, uid) {
     }
     const cid = await topics.getTopicField(tid, 'cid');
     return await privsCategories.isAdminOrMod(cid, uid);
-};
-
-export function canViewDeletedScheduled(topic, privileges = {}, viewDeleted = false, viewScheduled = false) {
-    if (!topic) {
-        return false;
-    }
-    const { deleted = false, scheduled = false } = topic;
-    const { view_deleted = viewDeleted, view_scheduled = viewScheduled } = privileges;
-
-    // conceptually exclusive, scheduled topics deemed to be not deleted (they can only be purged)
-    if (scheduled) {
-        return view_scheduled;
-    } else if (deleted) {
-        return view_deleted;
-    }
-
-    return true;
 }

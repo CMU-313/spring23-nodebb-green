@@ -4,7 +4,7 @@ import { UserObjectSlim } from './user';
 import { PostObjectPartial } from './post';
 
 export type TopicObject =
-    TopicObjectSlim & TopicObjectCoreProperties & TopicObjectOptionalProperties;
+  TopicObjectSlim & TopicObjectCoreProperties & TopicObjectOptionalProperties;
 
 export type TopicObjectCoreProperties = {
   lastposttime: number;
@@ -34,6 +34,8 @@ export type TopicData = {
   viewcount?: number | string;
   resolve: boolean;
   privateTopic: boolean;
+  deleted: boolean;
+  scheduled: boolean;
   tags?: string | undefined[] | TagObject[];
   content?: string;
   fromQueue?: boolean;
