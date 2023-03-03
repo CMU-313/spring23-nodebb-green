@@ -114,7 +114,7 @@ async function resolveTopic(tid: string | number, uid: number) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const isOwnerOrAdminOrMod = await privileges.topics.isOwnerOrAdminOrMod(tid, uid);
+    const isOwnerOrAdminOrMod = await privileges.topics.isOwnerOrAdminOrMod(tid, uid) as boolean;
     if (!isOwnerOrAdminOrMod) {
         throw new Error('[[error:no-privileges]]');
     }
