@@ -97,6 +97,33 @@ describe('Topic\'s', () => {
             });
         });
 
+        it('should mark a post as unresolved by default', (done) => {
+            topics.post({
+                uid: topic.userId,
+                title: topic.title,
+                content: topic.content,
+                cid: topic.categoryId,
+            }, (err, result) => {
+                assert.ifError(err);
+                assert(result);
+                topic.tid = result.topicData.tid;
+                assert.equal(result.topicData.resolve, false);
+                done();
+            });
+        });
+
+        it('should set an unresolved topic to resolved when resolve is called', async () => {
+            const { topicData } = await topics.post({
+                uid: topic.userId,
+                title: topic.title,
+                content: topic.content,
+                cid: topic.categoryId,
+            });
+            await topics.resolve(topicData.tid);
+            const resolved = await topics.getTopicField(topicData.tid, ['resolve']);
+            assert.equal(resolved, true);
+        });
+
         it('should get post count', (done) => {
             socketTopics.postcount({ uid: adminUid }, topic.tid, (err, count) => {
                 assert.ifError(err);
@@ -400,6 +427,7 @@ describe('Topic\'s', () => {
                 assert.strictEqual(topicData.locked, 0);
                 assert.strictEqual(topicData.pinned, 0);
                 assert.strictEqual(topicData.privateTopic, false);
+                assert.strictEqual(topicData.resolve, false);
                 done();
             });
         });
