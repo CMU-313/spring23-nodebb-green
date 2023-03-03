@@ -97,7 +97,7 @@ describe('Topic\'s', () => {
             });
         });
 
-        it('should create an unresolved post by default', (done) => {
+        it('should mark a post as unresolved by default', (done) => {
             topics.post({
                 uid: topic.userId,
                 title: topic.title,
@@ -110,6 +110,20 @@ describe('Topic\'s', () => {
                 assert.equal(result.topicData.resolve, false);
                 done();
             });
+        });
+
+        it('should set an unresolved topic to resolved when resolve is called', async () => {
+            const { topicData } = await topics.post({
+                uid: topic.userId,
+                title: topic.title,
+                content: topic.content,
+                cid: topic.categoryId,
+            });
+            let resolved = await topics.getTopicField(topicData.tid, ['resolved']);
+            assert.equal(resolved, false);
+            await topics.resolve(topicData.tid);
+            resolved = await topics.getTopicField(topicData.tid, ['resolved']);
+            assert.equal(resolved, true);
         });
 
         it('should get post count', (done) => {
