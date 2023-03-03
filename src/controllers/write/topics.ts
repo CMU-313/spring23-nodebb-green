@@ -100,11 +100,11 @@ export const reply = async (req: ExtendedRequest, res: Response) => {
 export const deleteTopic = async (req: ExtendedRequest, res: Response) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    await api.topics.delete(req, { tids: [req.params.tid] });
+    await api.topics.del(req, { tids: [req.params.tid] });
     await helpers.formatApiResponse(200, res);
 };
 
-async function resolveTopic(tid, uid: number) {
+async function resolveTopic(tid: string | number, uid: number) {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const topicData = await topics.getTopicFields(tid, ['tid', 'uid', 'cid']) as TopicData;

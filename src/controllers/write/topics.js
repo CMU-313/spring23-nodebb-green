@@ -69,7 +69,7 @@ exports.reply = reply;
 const deleteTopic = async (req, res) => {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    await api_1.default.topics.delete(req, { tids: [req.params.tid] });
+    await api_1.default.topics.del(req, { tids: [req.params.tid] });
     await helpers_1.default.formatApiResponse(200, res);
 };
 exports.deleteTopic = deleteTopic;
