@@ -22,6 +22,10 @@ processes = []
     type = "connections"
 
   [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 4567
+
+  [[services.ports]]
     force_https = true
     handlers = ["http"]
     port = 80
@@ -29,10 +33,6 @@ processes = []
   [[services.ports]]
     handlers = ["tls", "http"]
     port = 443
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 4567
 
   [[services.tcp_checks]]
     grace_period = "1s"
