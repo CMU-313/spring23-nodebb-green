@@ -1,10 +1,11 @@
-import { CategoryObject } from './category';
-import { TagObject } from './tag';
-import { UserObjectSlim } from './user';
-import { PostObjectPartial } from './post';
+import { CategoryObject } from "./category";
+import { TagObject } from "./tag";
+import { UserObjectSlim } from "./user";
+import { PostObjectPartial } from "./post";
 
-export type TopicObject =
-  TopicObjectSlim & TopicObjectCoreProperties & TopicObjectOptionalProperties;
+export type TopicObject = TopicObjectSlim &
+  TopicObjectCoreProperties &
+  TopicObjectOptionalProperties;
 
 export type TopicObjectCoreProperties = {
   lastposttime: number;
@@ -40,11 +41,11 @@ export type TopicData = {
   req?: Request;
   ip?: number;
   handle?: string;
-}
+};
 
 export type Request = {
   ip?: number;
-}
+};
 
 export type TopicObjectOptionalProperties = {
   tid: number;
@@ -117,26 +118,47 @@ export interface TopicAndPostData {
 export interface TopicFields {
   markAsUnreadForAll: (tid: number) => Promise<void>;
   markAsRead: (tids: number[], uid: number | string) => Promise<void>;
-  getTopicFields: (tid: number, fields: string[]) => Promise<TopicObject | null>;
+  getTopicFields: (
+    tid: number,
+    fields: string[]
+  ) => Promise<TopicObject | null>;
   addParentPosts: (postData: PostObjectPartial[]) => Promise<void>;
   syncBacklinks: (postData: PostObjectPartial) => Promise<void>;
   create: (data: TopicData) => Promise<number>;
-  createTags: (tags: string | undefined[] | TagObject[], tid: number, timestamp: number) => Promise<void>;
+  createTags: (
+    tags: string | undefined[] | TagObject[],
+    tid: number,
+    timestamp: number
+  ) => Promise<void>;
   scheduled: any;
   post: (data: TopicData) => Promise<TopicAndPostData>;
   checkTitle: (title: string) => void;
-  validateTags: (tags: string | undefined[] | TagObject[], cid: number, uid: number | string) => Promise<void>;
-  filterTags: (tags: string | undefined[] | TagObject[], cid: number) => Promise<string | undefined[] | TagObject[]>;
+  validateTags: (
+    tags: string | undefined[] | TagObject[],
+    cid: number,
+    uid: number | string
+  ) => Promise<void>;
+  filterTags: (
+    tags: string | undefined[] | TagObject[],
+    cid: number
+  ) => Promise<string | undefined[] | TagObject[]>;
   checkContent: (content: string) => void;
-  getTopicsByTids: (tids: number[], uid: number | string) => Promise<TopicObject[] | null>;
+  getTopicsByTids: (
+    tids: number[],
+    uid: number | string
+  ) => Promise<TopicObject[] | null>;
   follow: (tid: number, uid: number | string) => Promise<void>;
   delete: (tid: number) => Promise<void>;
   reply: (data: TopicData) => Promise<PostObjectPartial>;
   getTopicData: (tid: number) => Promise<TopicObject | null>;
-  notifyFollowers: (postData: PostObjectPartial, uid: number | string, obj: {
-    type: string,
-    bodyShort: string,
-    nid: string,
-    mergeId: string,
-  }) => void;
+  notifyFollowers: (
+    postData: PostObjectPartial,
+    uid: number | string,
+    obj: {
+      type: string;
+      bodyShort: string;
+      nid: string;
+      mergeId: string;
+    }
+  ) => void;
 }
