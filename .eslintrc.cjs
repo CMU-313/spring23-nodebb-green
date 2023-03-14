@@ -45,11 +45,14 @@ function find_compiled_js() {
 }
 
 module.exports = {
-  extends: ["nodebb"],
+  extends: ["nodebb", "prettier"],
   root: true,
   ignorePatterns: find_compiled_js(),
   rules: {
-    indent: ["error", 4],
+    "no-bitwise": "off",
+    "no-script-url": "off",
+    "no-unused-vars": "off",
+    "no-useless-concat": "off",
   },
   overrides: [
     {
@@ -65,8 +68,10 @@ module.exports = {
         project: "./tsconfig.json",
       },
       rules: {
-        "no-use-before-define": "off",
         "@typescript-eslint/no-use-before-define": "error",
+        "no-use-before-define": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-call": "off"
       },
     },
   ],
