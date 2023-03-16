@@ -10,6 +10,7 @@
     },
     "main": "app.js",
     "scripts": {
+        "iroh": "node iroh/index.js",
         "start": "npx tsc && node loader.js",
         "lint": "npx tsc && eslint --cache ./nodebb .",
         "test": "npx tsc && nyc --reporter=html --reporter=text-summary mocha",
@@ -72,6 +73,7 @@
         "helmet": "5.1.1",
         "html-to-text": "9.0.3",
         "ioredis": "5.2.4",
+        "iroh": "^0.3.0",
         "ipaddr.js": "2.0.1",
         "jquery": "3.6.3",
         "jquery-deserialize": "2.0.0",
