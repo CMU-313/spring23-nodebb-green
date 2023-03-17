@@ -1,13 +1,13 @@
-"use strict";
+'use strict'
 
-define("persona/quickreply", [
-    "components",
-    "composer",
-    "composer/autocomplete",
-    "api",
-    "alerts",
-    "uploadHelpers",
-    "mousetrap",
+define('persona/quickreply', [
+    'components',
+    'composer',
+    'composer/autocomplete',
+    'api',
+    'alerts',
+    'uploadHelpers',
+    'mousetrap',
 ], function (
     components,
     composer,
@@ -17,30 +17,30 @@ define("persona/quickreply", [
     uploadHelpers,
     mousetrap
 ) {
-    var QuickReply = {};
+    var QuickReply = {}
 
     QuickReply.init = function () {
-        var element = components.get("topic/quickreply/text");
+        var element = components.get('topic/quickreply/text')
         var data = {
             element: element,
             strategies: [],
             options: {
                 style: {
-                    "z-index": 100,
+                    'z-index': 100,
                 },
             },
-        };
+        }
 
-        $(window).trigger("composer:autocomplete:init", data);
-        autocomplete._active.persona_qr = autocomplete.setup(data);
+        $(window).trigger('composer:autocomplete:init', data)
+        autocomplete._active.persona_qr = autocomplete.setup(data)
         // data.element.textcomplete(data.strategies, data.options);
         // $('.textcomplete-wrapper').css('height', '100%').find('textarea').css('height', '100%');
 
-        mousetrap.bind("ctrl+return", (e) => {
+        mousetrap.bind('ctrl+return', (e) => {
             if (e.target === element.get(0)) {
-                components.get("topic/quickreply/button").get(0).click();
+                components.get('topic/quickreply/button').get(0).click()
             }
-        });
+        })
 
         uploadHelpers.init({
             dragDropAreaEl: $(
@@ -49,74 +49,74 @@ define("persona/quickreply", [
             pasteEl: element,
             uploadFormEl: $('[component="topic/quickreply/upload"]'),
             inputEl: element,
-            route: "/api/post/upload",
+            route: '/api/post/upload',
             callback: function (uploads) {
-                let text = element.val();
+                let text = element.val()
                 uploads.forEach((upload) => {
                     text =
                         text +
-                        (text ? "\n" : "") +
-                        (upload.isImage ? "!" : "") +
-                        `[${upload.filename}](${upload.url})`;
-                });
-                element.val(text);
+                        (text ? '\n' : '') +
+                        (upload.isImage ? '!' : '') +
+                        `[${upload.filename}](${upload.url})`
+                })
+                element.val(text)
             },
-        });
+        })
 
-        var ready = true;
-        components.get("topic/quickreply/button").on("click", function (e) {
-            e.preventDefault();
+        var ready = true
+        components.get('topic/quickreply/button').on('click', function (e) {
+            e.preventDefault()
             if (!ready) {
-                return;
+                return
             }
 
-            var replyMsg = components.get("topic/quickreply/text").val();
+            var replyMsg = components.get('topic/quickreply/text').val()
             var replyData = {
                 tid: ajaxify.data.tid,
                 handle: undefined,
                 content: replyMsg,
-            };
+            }
 
-            ready = false;
+            ready = false
             api.post(
                 `/topics/${ajaxify.data.tid}`,
                 replyData,
                 function (err, data) {
-                    ready = true;
+                    ready = true
                     if (err) {
-                        return alerts.error(err);
+                        return alerts.error(err)
                     }
                     if (data && data.queued) {
                         alerts.alert({
-                            type: "success",
-                            title: "[[global:alert.success]]",
+                            type: 'success',
+                            title: '[[global:alert.success]]',
                             message: data.message,
                             timeout: 10000,
                             clickfn: function () {
-                                ajaxify.go(`/post-queue/${data.id}`);
+                                ajaxify.go(`/post-queue/${data.id}`)
                             },
-                        });
+                        })
                     }
 
-                    components.get("topic/quickreply/text").val("");
-                    autocomplete._active.persona_qr.hide();
+                    components.get('topic/quickreply/text').val('')
+                    autocomplete._active.persona_qr.hide()
                 }
-            );
-        });
+            )
+        })
 
-        components.get("topic/quickreply/expand").on("click", (e) => {
-            e.preventDefault();
+        components.get('topic/quickreply/expand').on('click', (e) => {
+            e.preventDefault()
 
-            const textEl = components.get("topic/quickreply/text");
+            const textEl = components.get('topic/quickreply/text')
             composer.newReply(
                 ajaxify.data.tid,
                 undefined,
                 ajaxify.data.title,
                 utils.escapeHTML(textEl.val())
-            );
-            textEl.val("");
-        });
-    };
+            )
+            textEl.val('')
+        })
+    }
 
-    return QuickReply;
-});
+    return QuickReply
+})

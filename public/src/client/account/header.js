@@ -1,15 +1,15 @@
-"use strict";
+'use strict'
 
-define("forum/account/header", [
-    "coverPhoto",
-    "pictureCropper",
-    "components",
-    "translator",
-    "benchpress",
-    "accounts/delete",
-    "api",
-    "bootbox",
-    "alerts",
+define('forum/account/header', [
+    'coverPhoto',
+    'pictureCropper',
+    'components',
+    'translator',
+    'benchpress',
+    'accounts/delete',
+    'api',
+    'bootbox',
+    'alerts',
 ], function (
     coverPhoto,
     pictureCropper,
@@ -21,209 +21,209 @@ define("forum/account/header", [
     bootbox,
     alerts
 ) {
-    const AccountHeader = {};
-    let isAdminOrSelfOrGlobalMod;
+    const AccountHeader = {}
+    let isAdminOrSelfOrGlobalMod
 
     AccountHeader.init = function () {
         isAdminOrSelfOrGlobalMod =
             ajaxify.data.isAdmin ||
             ajaxify.data.isSelf ||
-            ajaxify.data.isGlobalModerator;
+            ajaxify.data.isGlobalModerator
 
-        hidePrivateLinks();
-        selectActivePill();
+        hidePrivateLinks()
+        selectActivePill()
 
         if (isAdminOrSelfOrGlobalMod) {
-            setupCoverPhoto();
+            setupCoverPhoto()
         }
 
-        components.get("account/follow").on("click", function () {
-            toggleFollow("follow");
-        });
+        components.get('account/follow').on('click', function () {
+            toggleFollow('follow')
+        })
 
-        components.get("account/unfollow").on("click", function () {
-            toggleFollow("unfollow");
-        });
+        components.get('account/unfollow').on('click', function () {
+            toggleFollow('unfollow')
+        })
 
-        components.get("account/chat").on("click", async function () {
+        components.get('account/chat').on('click', async function () {
             const roomId = await socket.emit(
-                "modules.chats.hasPrivateChat",
+                'modules.chats.hasPrivateChat',
                 ajaxify.data.uid
-            );
-            const chat = await app.require("chat");
+            )
+            const chat = await app.require('chat')
             if (roomId) {
-                chat.openChat(roomId);
+                chat.openChat(roomId)
             } else {
-                chat.newChat(ajaxify.data.uid);
+                chat.newChat(ajaxify.data.uid)
             }
-        });
+        })
 
-        components.get("account/new-chat").on("click", async function () {
-            const chat = await app.require("chat");
+        components.get('account/new-chat').on('click', async function () {
+            const chat = await app.require('chat')
             chat.newChat(ajaxify.data.uid, function () {
-                components.get("account/chat").parent().removeClass("hidden");
-            });
-        });
+                components.get('account/chat').parent().removeClass('hidden')
+            })
+        })
 
-        components.get("account/ban").on("click", function () {
-            banAccount(ajaxify.data.theirid);
-        });
-        components.get("account/mute").on("click", function () {
-            muteAccount(ajaxify.data.theirid);
-        });
-        components.get("account/unban").on("click", function () {
-            unbanAccount(ajaxify.data.theirid);
-        });
-        components.get("account/unmute").on("click", function () {
-            unmuteAccount(ajaxify.data.theirid);
-        });
+        components.get('account/ban').on('click', function () {
+            banAccount(ajaxify.data.theirid)
+        })
+        components.get('account/mute').on('click', function () {
+            muteAccount(ajaxify.data.theirid)
+        })
+        components.get('account/unban').on('click', function () {
+            unbanAccount(ajaxify.data.theirid)
+        })
+        components.get('account/unmute').on('click', function () {
+            unmuteAccount(ajaxify.data.theirid)
+        })
         components
-            .get("account/delete-account")
-            .on("click", handleDeleteEvent.bind(null, "account"));
+            .get('account/delete-account')
+            .on('click', handleDeleteEvent.bind(null, 'account'))
         components
-            .get("account/delete-content")
-            .on("click", handleDeleteEvent.bind(null, "content"));
+            .get('account/delete-content')
+            .on('click', handleDeleteEvent.bind(null, 'content'))
         components
-            .get("account/delete-all")
-            .on("click", handleDeleteEvent.bind(null, "purge"));
-        components.get("account/flag").on("click", flagAccount);
-        components.get("account/block").on("click", toggleBlockAccount);
-    };
+            .get('account/delete-all')
+            .on('click', handleDeleteEvent.bind(null, 'purge'))
+        components.get('account/flag').on('click', flagAccount)
+        components.get('account/block').on('click', toggleBlockAccount)
+    }
 
     function handleDeleteEvent(type) {
-        AccountsDelete[type](ajaxify.data.theirid);
+        AccountsDelete[type](ajaxify.data.theirid)
     }
 
     // TODO: This exported method is used in forum/flags/detail -- refactor??
-    AccountHeader.banAccount = banAccount;
-    AccountHeader.muteAccount = muteAccount;
-    AccountHeader.unbanAccount = unbanAccount;
-    AccountHeader.unmuteAccount = unmuteAccount;
+    AccountHeader.banAccount = banAccount
+    AccountHeader.muteAccount = muteAccount
+    AccountHeader.unbanAccount = unbanAccount
+    AccountHeader.unmuteAccount = unmuteAccount
 
     function hidePrivateLinks() {
         if (
             !app.user.uid ||
             app.user.uid !== parseInt(ajaxify.data.theirid, 10)
         ) {
-            $(".account-sub-links .plugin-link.private").addClass("hide");
+            $('.account-sub-links .plugin-link.private').addClass('hide')
         }
     }
 
     function selectActivePill() {
-        $(".account-sub-links li")
-            .removeClass("active")
+        $('.account-sub-links li')
+            .removeClass('active')
             .each(function () {
-                const href = $(this).find("a").attr("href");
+                const href = $(this).find('a').attr('href')
 
                 if (
                     decodeURIComponent(href) ===
                     decodeURIComponent(window.location.pathname)
                 ) {
-                    $(this).addClass("active");
-                    return false;
+                    $(this).addClass('active')
+                    return false
                 }
-            });
+            })
     }
 
     function setupCoverPhoto() {
         coverPhoto.init(
-            components.get("account/cover"),
+            components.get('account/cover'),
             function (imageData, position, callback) {
                 socket.emit(
-                    "user.updateCover",
+                    'user.updateCover',
                     {
                         uid: ajaxify.data.uid,
                         imageData: imageData,
                         position: position,
                     },
                     callback
-                );
+                )
             },
             function () {
                 pictureCropper.show(
                     {
-                        title: "[[user:upload_cover_picture]]",
-                        socketMethod: "user.updateCover",
+                        title: '[[user:upload_cover_picture]]',
+                        socketMethod: 'user.updateCover',
                         aspectRatio: NaN,
                         allowSkippingCrop: true,
                         restrictImageDimension: false,
-                        paramName: "uid",
+                        paramName: 'uid',
                         paramValue: ajaxify.data.theirid,
-                        accept: ".png,.jpg,.bmp",
+                        accept: '.png,.jpg,.bmp',
                     },
                     function (imageUrlOnServer) {
                         imageUrlOnServer =
-                            (!imageUrlOnServer.startsWith("http")
+                            (!imageUrlOnServer.startsWith('http')
                                 ? config.relative_path
-                                : "") +
+                                : '') +
                             imageUrlOnServer +
-                            "?" +
-                            Date.now();
+                            '?' +
+                            Date.now()
                         components
-                            .get("account/cover")
+                            .get('account/cover')
                             .css(
-                                "background-image",
-                                "url(" + imageUrlOnServer + ")"
-                            );
+                                'background-image',
+                                'url(' + imageUrlOnServer + ')'
+                            )
                     }
-                );
+                )
             },
             removeCover
-        );
+        )
     }
 
     function toggleFollow(type) {
-        api[type === "follow" ? "put" : "del"](
-            "/users/" + ajaxify.data.uid + "/follow",
+        api[type === 'follow' ? 'put' : 'del'](
+            '/users/' + ajaxify.data.uid + '/follow',
             undefined,
             function (err) {
                 if (err) {
-                    return alerts.error(err);
+                    return alerts.error(err)
                 }
                 components
-                    .get("account/follow")
-                    .toggleClass("hide", type === "follow");
+                    .get('account/follow')
+                    .toggleClass('hide', type === 'follow')
                 components
-                    .get("account/unfollow")
-                    .toggleClass("hide", type === "unfollow");
+                    .get('account/unfollow')
+                    .toggleClass('hide', type === 'unfollow')
                 alerts.success(
-                    "[[global:alert." +
+                    '[[global:alert.' +
                         type +
-                        ", " +
+                        ', ' +
                         ajaxify.data.username +
-                        "]]"
-                );
+                        ']]'
+                )
             }
-        );
+        )
 
-        return false;
+        return false
     }
 
     function banAccount(theirid, onSuccess) {
-        theirid = theirid || ajaxify.data.theirid;
+        theirid = theirid || ajaxify.data.theirid
 
-        Benchpress.render("admin/partials/temporary-ban", {}).then(function (
+        Benchpress.render('admin/partials/temporary-ban', {}).then(function (
             html
         ) {
             bootbox.dialog({
-                className: "ban-modal",
-                title: "[[user:ban_account]]",
+                className: 'ban-modal',
+                title: '[[user:ban_account]]',
                 message: html,
                 show: true,
                 buttons: {
                     close: {
-                        label: "[[global:close]]",
-                        className: "btn-link",
+                        label: '[[global:close]]',
+                        className: 'btn-link',
                     },
                     submit: {
-                        label: "[[user:ban_account]]",
+                        label: '[[user:ban_account]]',
                         callback: function () {
-                            const formData = $(".ban-modal form")
+                            const formData = $('.ban-modal form')
                                 .serializeArray()
                                 .reduce(function (data, cur) {
-                                    data[cur.name] = cur.value;
-                                    return data;
-                                }, {});
+                                    data[cur.name] = cur.value
+                                    return data
+                                }, {})
 
                             const until =
                                 formData.length > 0
@@ -233,59 +233,59 @@ define("forum/account/header", [
                                           60 *
                                           60 *
                                           (parseInt(formData.unit, 10) ? 24 : 1)
-                                    : 0;
+                                    : 0
 
-                            api.put("/users/" + theirid + "/ban", {
+                            api.put('/users/' + theirid + '/ban', {
                                 until: until,
-                                reason: formData.reason || "",
+                                reason: formData.reason || '',
                             })
                                 .then(() => {
-                                    if (typeof onSuccess === "function") {
-                                        return onSuccess();
+                                    if (typeof onSuccess === 'function') {
+                                        return onSuccess()
                                     }
 
-                                    ajaxify.refresh();
+                                    ajaxify.refresh()
                                 })
-                                .catch(alerts.error);
+                                .catch(alerts.error)
                         },
                     },
                 },
-            });
-        });
+            })
+        })
     }
 
     function unbanAccount(theirid) {
-        api.del("/users/" + theirid + "/ban")
+        api.del('/users/' + theirid + '/ban')
             .then(() => {
-                ajaxify.refresh();
+                ajaxify.refresh()
             })
-            .catch(alerts.error);
+            .catch(alerts.error)
     }
 
     function muteAccount(theirid, onSuccess) {
-        theirid = theirid || ajaxify.data.theirid;
-        Benchpress.render("admin/partials/temporary-mute", {}).then(function (
+        theirid = theirid || ajaxify.data.theirid
+        Benchpress.render('admin/partials/temporary-mute', {}).then(function (
             html
         ) {
             bootbox.dialog({
-                className: "mute-modal",
-                title: "[[user:mute_account]]",
+                className: 'mute-modal',
+                title: '[[user:mute_account]]',
                 message: html,
                 show: true,
                 buttons: {
                     close: {
-                        label: "[[global:close]]",
-                        className: "btn-link",
+                        label: '[[global:close]]',
+                        className: 'btn-link',
                     },
                     submit: {
-                        label: "[[user:mute_account]]",
+                        label: '[[user:mute_account]]',
                         callback: function () {
-                            const formData = $(".mute-modal form")
+                            const formData = $('.mute-modal form')
                                 .serializeArray()
                                 .reduce(function (data, cur) {
-                                    data[cur.name] = cur.value;
-                                    return data;
-                                }, {});
+                                    data[cur.name] = cur.value
+                                    return data
+                                }, {})
 
                             const until =
                                 formData.length > 0
@@ -295,95 +295,95 @@ define("forum/account/header", [
                                           60 *
                                           60 *
                                           (parseInt(formData.unit, 10) ? 24 : 1)
-                                    : 0;
+                                    : 0
 
-                            api.put("/users/" + theirid + "/mute", {
+                            api.put('/users/' + theirid + '/mute', {
                                 until: until,
-                                reason: formData.reason || "",
+                                reason: formData.reason || '',
                             })
                                 .then(() => {
-                                    if (typeof onSuccess === "function") {
-                                        return onSuccess();
+                                    if (typeof onSuccess === 'function') {
+                                        return onSuccess()
                                     }
-                                    ajaxify.refresh();
+                                    ajaxify.refresh()
                                 })
-                                .catch(alerts.error);
+                                .catch(alerts.error)
                         },
                     },
                 },
-            });
-        });
+            })
+        })
     }
 
     function unmuteAccount(theirid) {
-        api.del("/users/" + theirid + "/mute")
+        api.del('/users/' + theirid + '/mute')
             .then(() => {
-                ajaxify.refresh();
+                ajaxify.refresh()
             })
-            .catch(alerts.error);
+            .catch(alerts.error)
     }
 
     function flagAccount() {
-        require(["flags"], function (flags) {
+        require(['flags'], function (flags) {
             flags.showFlagModal({
-                type: "user",
+                type: 'user',
                 id: ajaxify.data.uid,
-            });
-        });
+            })
+        })
     }
 
     function toggleBlockAccount() {
-        const targetEl = this;
+        const targetEl = this
         socket.emit(
-            "user.toggleBlock",
+            'user.toggleBlock',
             {
                 blockeeUid: ajaxify.data.uid,
                 blockerUid: app.user.uid,
             },
             function (err, blocked) {
                 if (err) {
-                    return alerts.error(err);
+                    return alerts.error(err)
                 }
 
                 translator.translate(
-                    "[[user:" + (blocked ? "unblock" : "block") + "_user]]",
+                    '[[user:' + (blocked ? 'unblock' : 'block') + '_user]]',
                     function (label) {
-                        $(targetEl).text(label);
+                        $(targetEl).text(label)
                     }
-                );
+                )
             }
-        );
+        )
 
         // Keep dropdown open
-        return false;
+        return false
     }
 
     function removeCover() {
         translator.translate(
-            "[[user:remove_cover_picture_confirm]]",
+            '[[user:remove_cover_picture_confirm]]',
             function (translated) {
                 bootbox.confirm(translated, function (confirm) {
                     if (!confirm) {
-                        return;
+                        return
                     }
 
                     socket.emit(
-                        "user.removeCover",
+                        'user.removeCover',
                         {
                             uid: ajaxify.data.uid,
                         },
                         function (err) {
                             if (!err) {
-                                ajaxify.refresh();
+                                ajaxify.refresh()
                             } else {
-                                alerts.error(err);
+                                alerts.error(err)
                             }
                         }
-                    );
-                });
+                    )
+                })
             }
-        );
+        )
     }
 
-    return AccountHeader;
-});
+    return AccountHeader
+})

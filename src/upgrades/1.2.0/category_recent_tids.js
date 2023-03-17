@@ -1,15 +1,15 @@
-"use strict";
+'use strict'
 
-const async = require("async");
-const db = require("../../database");
+const async = require('async')
+const db = require('../../database')
 
 module.exports = {
-    name: "Category recent tids",
+    name: 'Category recent tids',
     timestamp: Date.UTC(2016, 8, 22),
     method: function (callback) {
-        db.getSortedSetRange("categories:cid", 0, -1, (err, cids) => {
+        db.getSortedSetRange('categories:cid', 0, -1, (err, cids) => {
             if (err) {
-                return callback(err);
+                return callback(err)
             }
 
             async.eachSeries(
@@ -21,28 +21,28 @@ module.exports = {
                         0,
                         (err, pid) => {
                             if (err || !pid) {
-                                return next(err);
+                                return next(err)
                             }
                             db.getObjectFields(
                                 `post:${pid}`,
-                                ["tid", "timestamp"],
+                                ['tid', 'timestamp'],
                                 (err, postData) => {
                                     if (err || !postData || !postData.tid) {
-                                        return next(err);
+                                        return next(err)
                                     }
                                     db.sortedSetAdd(
                                         `cid:${cid}:recent_tids`,
                                         postData.timestamp,
                                         postData.tid,
                                         next
-                                    );
+                                    )
                                 }
-                            );
+                            )
                         }
-                    );
+                    )
                 },
                 callback
-            );
-        });
+            )
+        })
     },
-};
+}

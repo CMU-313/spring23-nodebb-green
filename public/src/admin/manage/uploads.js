@@ -1,67 +1,67 @@
-"use strict";
+'use strict'
 
-define("admin/manage/uploads", [
-    "api",
-    "bootbox",
-    "alerts",
-    "uploader",
+define('admin/manage/uploads', [
+    'api',
+    'bootbox',
+    'alerts',
+    'uploader',
 ], function (api, bootbox, alerts, uploader) {
-    const Uploads = {};
+    const Uploads = {}
 
     Uploads.init = function () {
-        $("#upload").on("click", function () {
+        $('#upload').on('click', function () {
             uploader.show(
                 {
-                    title: "[[admin/manage/uploads:upload-file]]",
-                    route: config.relative_path + "/api/admin/upload/file",
+                    title: '[[admin/manage/uploads:upload-file]]',
+                    route: config.relative_path + '/api/admin/upload/file',
                     params: { folder: ajaxify.data.currentFolder },
                 },
                 function () {
-                    ajaxify.refresh();
+                    ajaxify.refresh()
                 }
-            );
-        });
+            )
+        })
 
-        $(".delete").on("click", function () {
-            const file = $(this).parents("[data-path]");
+        $('.delete').on('click', function () {
+            const file = $(this).parents('[data-path]')
             bootbox.confirm(
-                "[[admin/manage/uploads:confirm-delete]]",
+                '[[admin/manage/uploads:confirm-delete]]',
                 function (ok) {
                     if (!ok) {
-                        return;
+                        return
                     }
 
-                    api.del("/files", {
-                        path: file.attr("data-path"),
+                    api.del('/files', {
+                        path: file.attr('data-path'),
                     })
                         .then(() => {
-                            file.remove();
+                            file.remove()
                         })
-                        .catch(alerts.error);
+                        .catch(alerts.error)
                 }
-            );
-        });
+            )
+        })
 
-        $("#new-folder").on("click", async function () {
+        $('#new-folder').on('click', async function () {
             bootbox.prompt(
-                "[[admin/manage/uploads:name-new-folder]]",
+                '[[admin/manage/uploads:name-new-folder]]',
                 (newFolderName) => {
                     if (!newFolderName || !newFolderName.trim()) {
-                        return;
+                        return
                     }
 
-                    api.put("/files/folder", {
+                    api.put('/files/folder', {
                         path: ajaxify.data.currentFolder,
                         folderName: newFolderName,
                     })
                         .then(() => {
-                            ajaxify.refresh();
+                            ajaxify.refresh()
                         })
-                        .catch(alerts.error);
+                        .catch(alerts.error)
                 }
-            );
-        });
-    };
+            )
+        })
+    }
 
-    return Uploads;
-});
+    return Uploads
+})

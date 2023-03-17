@@ -1,200 +1,200 @@
-"use strict";
+'use strict'
 
-const async = require("async");
-const winston = require("winston");
-const cron = require("cron").CronJob;
-const nconf = require("nconf");
-const _ = require("lodash");
+const async = require('async')
+const winston = require('winston')
+const cron = require('cron').CronJob
+const nconf = require('nconf')
+const _ = require('lodash')
 
-const db = require("./database");
-const User = require("./user");
-const posts = require("./posts");
-const groups = require("./groups");
-const meta = require("./meta");
-const batch = require("./batch");
-const plugins = require("./plugins");
-const utils = require("./utils");
-const emailer = require("./emailer");
+const db = require('./database')
+const User = require('./user')
+const posts = require('./posts')
+const groups = require('./groups')
+const meta = require('./meta')
+const batch = require('./batch')
+const plugins = require('./plugins')
+const utils = require('./utils')
+const emailer = require('./emailer')
 
-const Notifications = module.exports;
+const Notifications = module.exports
 
 Notifications.baseTypes = [
-    "notificationType_upvote",
-    "notificationType_new-topic",
-    "notificationType_new-reply",
-    "notificationType_post-edit",
-    "notificationType_follow",
-    "notificationType_new-chat",
-    "notificationType_new-group-chat",
-    "notificationType_group-invite",
-    "notificationType_group-leave",
-    "notificationType_group-request-membership",
-];
+    'notificationType_upvote',
+    'notificationType_new-topic',
+    'notificationType_new-reply',
+    'notificationType_post-edit',
+    'notificationType_follow',
+    'notificationType_new-chat',
+    'notificationType_new-group-chat',
+    'notificationType_group-invite',
+    'notificationType_group-leave',
+    'notificationType_group-request-membership',
+]
 
 Notifications.privilegedTypes = [
-    "notificationType_new-register",
-    "notificationType_post-queue",
-    "notificationType_new-post-flag",
-    "notificationType_new-user-flag",
-];
+    'notificationType_new-register',
+    'notificationType_post-queue',
+    'notificationType_new-post-flag',
+    'notificationType_new-user-flag',
+]
 
-const notificationPruneCutoff = 2592000000; // one month
+const notificationPruneCutoff = 2592000000 // one month
 
 Notifications.getAllNotificationTypes = async function () {
-    const results = await plugins.hooks.fire("filter:user.notificationTypes", {
+    const results = await plugins.hooks.fire('filter:user.notificationTypes', {
         types: Notifications.baseTypes.slice(),
         privilegedTypes: Notifications.privilegedTypes.slice(),
-    });
-    return results.types.concat(results.privilegedTypes);
-};
+    })
+    return results.types.concat(results.privilegedTypes)
+}
 
 Notifications.startJobs = function () {
-    winston.verbose("[notifications.init] Registering jobs.");
-    new cron("*/30 * * * *", Notifications.prune, null, true);
-};
+    winston.verbose('[notifications.init] Registering jobs.')
+    new cron('*/30 * * * *', Notifications.prune, null, true)
+}
 
 Notifications.get = async function (nid) {
-    const notifications = await Notifications.getMultiple([nid]);
+    const notifications = await Notifications.getMultiple([nid])
     return Array.isArray(notifications) && notifications.length
         ? notifications[0]
-        : null;
-};
+        : null
+}
 
 Notifications.getMultiple = async function (nids) {
     if (!Array.isArray(nids) || !nids.length) {
-        return [];
+        return []
     }
 
-    const keys = nids.map((nid) => `notifications:${nid}`);
-    const notifications = await db.getObjects(keys);
+    const keys = nids.map((nid) => `notifications:${nid}`)
+    const notifications = await db.getObjects(keys)
 
-    const userKeys = notifications.map((n) => n && n.from);
+    const userKeys = notifications.map((n) => n && n.from)
     const usersData = await User.getUsersFields(userKeys, [
-        "username",
-        "userslug",
-        "picture",
-    ]);
+        'username',
+        'userslug',
+        'picture',
+    ])
 
     notifications.forEach((notification, index) => {
         if (notification) {
-            if (notification.path && !notification.path.startsWith("http")) {
+            if (notification.path && !notification.path.startsWith('http')) {
                 notification.path =
-                    nconf.get("relative_path") + notification.path;
+                    nconf.get('relative_path') + notification.path
             }
-            notification.datetimeISO = utils.toISOString(notification.datetime);
+            notification.datetimeISO = utils.toISOString(notification.datetime)
 
             if (notification.bodyLong) {
                 notification.bodyLong = utils.stripHTMLTags(
                     notification.bodyLong,
-                    ["img", "p", "a"]
-                );
+                    ['img', 'p', 'a']
+                )
             }
 
-            notification.user = usersData[index];
+            notification.user = usersData[index]
             if (notification.user) {
-                notification.image = notification.user.picture || null;
-                if (notification.user.username === "[[global:guest]]") {
+                notification.image = notification.user.picture || null
+                if (notification.user.username === '[[global:guest]]') {
                     notification.bodyShort = notification.bodyShort.replace(
                         /([\s\S]*?),[\s\S]*?,([\s\S]*?)/,
-                        "$1, [[global:guest]], $2"
-                    );
+                        '$1, [[global:guest]], $2'
+                    )
                 }
             } else if (
-                notification.image === "brand:logo" ||
+                notification.image === 'brand:logo' ||
                 !notification.image
             ) {
                 notification.image =
-                    meta.config["brand:logo"] ||
-                    `${nconf.get("relative_path")}/logo.png`;
+                    meta.config['brand:logo'] ||
+                    `${nconf.get('relative_path')}/logo.png`
             }
         }
-    });
-    return notifications;
-};
+    })
+    return notifications
+}
 
 Notifications.filterExists = async function (nids) {
-    const exists = await db.isSortedSetMembers("notifications", nids);
-    return nids.filter((nid, idx) => exists[idx]);
-};
+    const exists = await db.isSortedSetMembers('notifications', nids)
+    return nids.filter((nid, idx) => exists[idx])
+}
 
 Notifications.findRelated = async function (mergeIds, set) {
-    mergeIds = mergeIds.filter(Boolean);
+    mergeIds = mergeIds.filter(Boolean)
     if (!mergeIds.length) {
-        return [];
+        return []
     }
     // A related notification is one in a zset that has the same mergeId
-    const nids = await db.getSortedSetRevRange(set, 0, -1);
+    const nids = await db.getSortedSetRevRange(set, 0, -1)
 
-    const keys = nids.map((nid) => `notifications:${nid}`);
-    const notificationData = await db.getObjectsFields(keys, ["mergeId"]);
+    const keys = nids.map((nid) => `notifications:${nid}`)
+    const notificationData = await db.getObjectsFields(keys, ['mergeId'])
     const notificationMergeIds = notificationData.map((notifObj) =>
         String(notifObj.mergeId)
-    );
-    const mergeSet = new Set(mergeIds.map((id) => String(id)));
-    return nids.filter((nid, idx) => mergeSet.has(notificationMergeIds[idx]));
-};
+    )
+    const mergeSet = new Set(mergeIds.map((id) => String(id)))
+    return nids.filter((nid, idx) => mergeSet.has(notificationMergeIds[idx]))
+}
 
 Notifications.create = async function (data) {
     if (!data.nid) {
-        throw new Error("[[error:no-notification-id]]");
+        throw new Error('[[error:no-notification-id]]')
     }
-    data.importance = data.importance || 5;
-    const oldNotif = await db.getObject(`notifications:${data.nid}`);
+    data.importance = data.importance || 5
+    const oldNotif = await db.getObject(`notifications:${data.nid}`)
     if (
         oldNotif &&
         parseInt(oldNotif.pid, 10) === parseInt(data.pid, 10) &&
         parseInt(oldNotif.importance, 10) > parseInt(data.importance, 10)
     ) {
-        return null;
+        return null
     }
-    const now = Date.now();
-    data.datetime = now;
-    const result = await plugins.hooks.fire("filter:notifications.create", {
+    const now = Date.now()
+    data.datetime = now
+    const result = await plugins.hooks.fire('filter:notifications.create', {
         data: data,
-    });
+    })
     if (!result.data) {
-        return null;
+        return null
     }
     await Promise.all([
-        db.sortedSetAdd("notifications", now, data.nid),
+        db.sortedSetAdd('notifications', now, data.nid),
         db.setObject(`notifications:${data.nid}`, data),
-    ]);
-    return data;
-};
+    ])
+    return data
+}
 
 Notifications.push = async function (notification, uids) {
     if (!notification || !notification.nid) {
-        return;
+        return
     }
-    uids = Array.isArray(uids) ? _.uniq(uids) : [uids];
+    uids = Array.isArray(uids) ? _.uniq(uids) : [uids]
     if (!uids.length) {
-        return;
+        return
     }
 
     setTimeout(() => {
         batch.processArray(
             uids,
             async (uids) => {
-                await pushToUids(uids, notification);
+                await pushToUids(uids, notification)
             },
             { interval: 1000, batch: 500 },
             (err) => {
                 if (err) {
-                    winston.error(err.stack);
+                    winston.error(err.stack)
                 }
             }
-        );
-    }, 1000);
-};
+        )
+    }, 1000)
+}
 
 async function pushToUids(uids, notification) {
     async function sendNotification(uids) {
         if (!uids.length) {
-            return;
+            return
         }
-        const cutoff = Date.now() - notificationPruneCutoff;
-        const unreadKeys = uids.map((uid) => `uid:${uid}:notifications:unread`);
-        const readKeys = uids.map((uid) => `uid:${uid}:notifications:read`);
+        const cutoff = Date.now() - notificationPruneCutoff
+        const unreadKeys = uids.map((uid) => `uid:${uid}:notifications:unread`)
+        const readKeys = uids.map((uid) => `uid:${uid}:notifications:read`)
         await Promise.all([
             db.sortedSetsAdd(
                 unreadKeys,
@@ -202,44 +202,44 @@ async function pushToUids(uids, notification) {
                 notification.nid
             ),
             db.sortedSetsRemove(readKeys, notification.nid),
-        ]);
+        ])
         await db.sortedSetsRemoveRangeByScore(
             unreadKeys.concat(readKeys),
-            "-inf",
+            '-inf',
             cutoff
-        );
-        const websockets = require("./socket.io");
+        )
+        const websockets = require('./socket.io')
         if (websockets.server) {
             uids.forEach((uid) => {
                 websockets
                     .in(`uid_${uid}`)
-                    .emit("event:new_notification", notification);
-            });
+                    .emit('event:new_notification', notification)
+            })
         }
     }
 
     async function sendEmail(uids) {
         // Update CTA messaging (as not all notification types need custom text)
-        if (["new-reply", "new-chat"].includes(notification.type)) {
-            notification["cta-type"] = notification.type;
+        if (['new-reply', 'new-chat'].includes(notification.type)) {
+            notification['cta-type'] = notification.type
         }
-        let body = notification.bodyLong || "";
+        let body = notification.bodyLong || ''
         if (meta.config.removeEmailNotificationImages) {
-            body = body.replace(/<img[^>]*>/, "");
+            body = body.replace(/<img[^>]*>/, '')
         }
-        body = posts.relativeToAbsolute(body, posts.urlRegex);
-        body = posts.relativeToAbsolute(body, posts.imgRegex);
-        let errorLogged = false;
+        body = posts.relativeToAbsolute(body, posts.urlRegex)
+        body = posts.relativeToAbsolute(body, posts.imgRegex)
+        let errorLogged = false
         await async.eachLimit(uids, 3, async (uid) => {
             await emailer
-                .send("notification", uid, {
+                .send('notification', uid, {
                     path: notification.path,
-                    notification_url: notification.path.startsWith("http")
+                    notification_url: notification.path.startsWith('http')
                         ? notification.path
-                        : nconf.get("url") + notification.path,
+                        : nconf.get('url') + notification.path,
                     subject: utils.stripHTMLTags(
                         notification.subject ||
-                            "[[notifications:new_notification]]"
+                            '[[notifications:new_notification]]'
                     ),
                     intro: utils.stripHTMLTags(notification.bodyShort),
                     body: body,
@@ -248,101 +248,101 @@ async function pushToUids(uids, notification) {
                 })
                 .catch((err) => {
                     if (!errorLogged) {
-                        winston.error(`[emailer.send] ${err.stack}`);
-                        errorLogged = true;
+                        winston.error(`[emailer.send] ${err.stack}`)
+                        errorLogged = true
                     }
-                });
-        });
+                })
+        })
     }
 
     async function getUidsBySettings(uids) {
-        const uidsToNotify = [];
-        const uidsToEmail = [];
-        const usersSettings = await User.getMultipleUserSettings(uids);
+        const uidsToNotify = []
+        const uidsToEmail = []
+        const usersSettings = await User.getMultipleUserSettings(uids)
         usersSettings.forEach((userSettings) => {
             const setting =
                 userSettings[`notificationType_${notification.type}`] ||
-                "notification";
+                'notification'
 
-            if (setting === "notification" || setting === "notificationemail") {
-                uidsToNotify.push(userSettings.uid);
+            if (setting === 'notification' || setting === 'notificationemail') {
+                uidsToNotify.push(userSettings.uid)
             }
 
-            if (setting === "email" || setting === "notificationemail") {
-                uidsToEmail.push(userSettings.uid);
+            if (setting === 'email' || setting === 'notificationemail') {
+                uidsToEmail.push(userSettings.uid)
             }
-        });
-        return { uidsToNotify: uidsToNotify, uidsToEmail: uidsToEmail };
+        })
+        return { uidsToNotify: uidsToNotify, uidsToEmail: uidsToEmail }
     }
 
     // Remove uid from recipients list if they have blocked the user triggering the notification
-    uids = await User.blocks.filterUids(notification.from, uids);
-    const data = await plugins.hooks.fire("filter:notification.push", {
+    uids = await User.blocks.filterUids(notification.from, uids)
+    const data = await plugins.hooks.fire('filter:notification.push', {
         notification: notification,
         uids: uids,
-    });
+    })
     if (!data || !data.notification || !data.uids || !data.uids.length) {
-        return;
+        return
     }
 
-    notification = data.notification;
-    let results = { uidsToNotify: data.uids, uidsToEmail: [] };
+    notification = data.notification
+    let results = { uidsToNotify: data.uids, uidsToEmail: [] }
     if (notification.type) {
-        results = await getUidsBySettings(data.uids);
+        results = await getUidsBySettings(data.uids)
     }
     await Promise.all([
         sendNotification(results.uidsToNotify),
         sendEmail(results.uidsToEmail),
-    ]);
-    plugins.hooks.fire("action:notification.pushed", {
+    ])
+    plugins.hooks.fire('action:notification.pushed', {
         notification: notification,
         uids: results.uidsToNotify,
         uidsNotified: results.uidsToNotify,
         uidsEmailed: results.uidsToEmail,
-    });
+    })
 }
 
 Notifications.pushGroup = async function (notification, groupName) {
     if (!notification) {
-        return;
+        return
     }
-    const members = await groups.getMembers(groupName, 0, -1);
-    await Notifications.push(notification, members);
-};
+    const members = await groups.getMembers(groupName, 0, -1)
+    await Notifications.push(notification, members)
+}
 
 Notifications.pushGroups = async function (notification, groupNames) {
     if (!notification) {
-        return;
+        return
     }
-    let groupMembers = await groups.getMembersOfGroups(groupNames);
-    groupMembers = _.uniq(_.flatten(groupMembers));
-    await Notifications.push(notification, groupMembers);
-};
+    let groupMembers = await groups.getMembersOfGroups(groupNames)
+    groupMembers = _.uniq(_.flatten(groupMembers))
+    await Notifications.push(notification, groupMembers)
+}
 
 Notifications.rescind = async function (nids) {
-    nids = Array.isArray(nids) ? nids : [nids];
+    nids = Array.isArray(nids) ? nids : [nids]
     await Promise.all([
-        db.sortedSetRemove("notifications", nids),
+        db.sortedSetRemove('notifications', nids),
         db.deleteAll(nids.map((nid) => `notifications:${nid}`)),
-    ]);
-};
+    ])
+}
 
 Notifications.markRead = async function (nid, uid) {
     if (parseInt(uid, 10) <= 0 || !nid) {
-        return;
+        return
     }
-    await Notifications.markReadMultiple([nid], uid);
-};
+    await Notifications.markReadMultiple([nid], uid)
+}
 
 Notifications.markUnread = async function (nid, uid) {
     if (!(parseInt(uid, 10) > 0) || !nid) {
-        return;
+        return
     }
-    const notification = await db.getObject(`notifications:${nid}`);
+    const notification = await db.getObject(`notifications:${nid}`)
     if (!notification) {
-        throw new Error("[[error:no-notification]]");
+        throw new Error('[[error:no-notification]]')
     }
-    notification.datetime = notification.datetime || Date.now();
+    notification.datetime = notification.datetime || Date.now()
 
     await Promise.all([
         db.sortedSetRemove(`uid:${uid}:notifications:read`, nid),
@@ -351,149 +351,149 @@ Notifications.markUnread = async function (nid, uid) {
             notification.datetime,
             nid
         ),
-    ]);
-};
+    ])
+}
 
 Notifications.markReadMultiple = async function (nids, uid) {
-    nids = nids.filter(Boolean);
+    nids = nids.filter(Boolean)
     if (!Array.isArray(nids) || !nids.length || !(parseInt(uid, 10) > 0)) {
-        return;
+        return
     }
 
-    let notificationKeys = nids.map((nid) => `notifications:${nid}`);
-    let mergeIds = await db.getObjectsFields(notificationKeys, ["mergeId"]);
+    let notificationKeys = nids.map((nid) => `notifications:${nid}`)
+    let mergeIds = await db.getObjectsFields(notificationKeys, ['mergeId'])
     // Isolate mergeIds and find related notifications
-    mergeIds = _.uniq(mergeIds.map((set) => set.mergeId));
+    mergeIds = _.uniq(mergeIds.map((set) => set.mergeId))
 
     const relatedNids = await Notifications.findRelated(
         mergeIds,
         `uid:${uid}:notifications:unread`
-    );
+    )
     notificationKeys = _.union(nids, relatedNids).map(
         (nid) => `notifications:${nid}`
-    );
+    )
 
     let notificationData = await db.getObjectsFields(notificationKeys, [
-        "nid",
-        "datetime",
-    ]);
-    notificationData = notificationData.filter((n) => n && n.nid);
+        'nid',
+        'datetime',
+    ])
+    notificationData = notificationData.filter((n) => n && n.nid)
 
-    nids = notificationData.map((n) => n.nid);
+    nids = notificationData.map((n) => n.nid)
     const datetimes = notificationData.map(
         (n) => (n && n.datetime) || Date.now()
-    );
+    )
     await Promise.all([
         db.sortedSetRemove(`uid:${uid}:notifications:unread`, nids),
         db.sortedSetAdd(`uid:${uid}:notifications:read`, datetimes, nids),
-    ]);
-};
+    ])
+}
 
 Notifications.markAllRead = async function (uid) {
     const nids = await db.getSortedSetRevRange(
         `uid:${uid}:notifications:unread`,
         0,
         99
-    );
-    await Notifications.markReadMultiple(nids, uid);
-};
+    )
+    await Notifications.markReadMultiple(nids, uid)
+}
 
 Notifications.prune = async function () {
-    const cutoffTime = Date.now() - notificationPruneCutoff;
+    const cutoffTime = Date.now() - notificationPruneCutoff
     const nids = await db.getSortedSetRangeByScore(
-        "notifications",
+        'notifications',
         0,
         500,
-        "-inf",
+        '-inf',
         cutoffTime
-    );
+    )
     if (!nids.length) {
-        return;
+        return
     }
     try {
         await Promise.all([
-            db.sortedSetRemove("notifications", nids),
+            db.sortedSetRemove('notifications', nids),
             db.deleteAll(nids.map((nid) => `notifications:${nid}`)),
-        ]);
+        ])
 
         await batch.processSortedSet(
-            "users:joindate",
+            'users:joindate',
             async (uids) => {
                 const unread = uids.map(
                     (uid) => `uid:${uid}:notifications:unread`
-                );
-                const read = uids.map((uid) => `uid:${uid}:notifications:read`);
+                )
+                const read = uids.map((uid) => `uid:${uid}:notifications:read`)
                 await db.sortedSetsRemoveRangeByScore(
                     unread.concat(read),
-                    "-inf",
+                    '-inf',
                     cutoffTime
-                );
+                )
             },
             { batch: 500, interval: 100 }
-        );
+        )
     } catch (err) {
         if (err) {
             winston.error(
                 `Encountered error pruning notifications\n${err.stack}`
-            );
+            )
         }
     }
-};
+}
 
 Notifications.merge = async function (notifications) {
     // When passed a set of notification objects, merge any that can be merged
     const mergeIds = [
-        "notifications:upvoted_your_post_in",
-        "notifications:user_started_following_you",
-        "notifications:user_posted_to",
-        "notifications:user_flagged_post_in",
-        "notifications:user_flagged_user",
-        "new_register",
-        "post-queue",
-    ];
+        'notifications:upvoted_your_post_in',
+        'notifications:user_started_following_you',
+        'notifications:user_posted_to',
+        'notifications:user_flagged_post_in',
+        'notifications:user_flagged_user',
+        'new_register',
+        'post-queue',
+    ]
 
     notifications = mergeIds.reduce((notifications, mergeId) => {
         const isolated = notifications.filter(
             (n) =>
                 n &&
-                n.hasOwnProperty("mergeId") &&
-                n.mergeId.split("|")[0] === mergeId
-        );
+                n.hasOwnProperty('mergeId') &&
+                n.mergeId.split('|')[0] === mergeId
+        )
         if (isolated.length <= 1) {
-            return notifications; // Nothing to merge
+            return notifications // Nothing to merge
         }
 
         // Each isolated mergeId may have multiple differentiators, so process each separately
         const differentiators = isolated.reduce((cur, next) => {
-            const differentiator = next.mergeId.split("|")[1] || 0;
+            const differentiator = next.mergeId.split('|')[1] || 0
             if (!cur.includes(differentiator)) {
-                cur.push(differentiator);
+                cur.push(differentiator)
             }
 
-            return cur;
-        }, []);
+            return cur
+        }, [])
 
         differentiators.forEach((differentiator) => {
-            let set;
+            let set
             if (differentiator === 0 && differentiators.length === 1) {
-                set = isolated;
+                set = isolated
             } else {
                 set = isolated.filter(
                     (n) => n.mergeId === `${mergeId}|${differentiator}`
-                );
+                )
             }
 
-            const modifyIndex = notifications.indexOf(set[0]);
+            const modifyIndex = notifications.indexOf(set[0])
             if (modifyIndex === -1 || set.length === 1) {
-                return notifications;
+                return notifications
             }
 
             switch (mergeId) {
-                case "notifications:upvoted_your_post_in":
-                case "notifications:user_started_following_you":
-                case "notifications:user_posted_to":
-                case "notifications:user_flagged_post_in":
-                case "notifications:user_flagged_user":
+                case 'notifications:upvoted_your_post_in':
+                case 'notifications:user_started_following_you':
+                case 'notifications:user_posted_to':
+                case 'notifications:user_flagged_post_in':
+                case 'notifications:user_flagged_user':
                     {
                         const usernames = _.uniq(
                             set.map(
@@ -502,65 +502,65 @@ Notifications.merge = async function (notifications) {
                                     notifObj.user &&
                                     notifObj.user.username
                             )
-                        );
-                        const numUsers = usernames.length;
+                        )
+                        const numUsers = usernames.length
 
                         const title = utils.decodeHTMLEntities(
-                            notifications[modifyIndex].topicTitle || ""
-                        );
+                            notifications[modifyIndex].topicTitle || ''
+                        )
                         let titleEscaped = title
-                            .replace(/%/g, "&#37;")
-                            .replace(/,/g, "&#44;");
-                        titleEscaped = titleEscaped ? `, ${titleEscaped}` : "";
+                            .replace(/%/g, '&#37;')
+                            .replace(/,/g, '&#44;')
+                        titleEscaped = titleEscaped ? `, ${titleEscaped}` : ''
 
                         if (numUsers === 2) {
                             notifications[
                                 modifyIndex
                             ].bodyShort = `[[${mergeId}_dual, ${usernames.join(
-                                ", "
-                            )}${titleEscaped}]]`;
+                                ', '
+                            )}${titleEscaped}]]`
                         } else if (numUsers > 2) {
                             notifications[
                                 modifyIndex
                             ].bodyShort = `[[${mergeId}_multiple, ${
                                 usernames[0]
-                            }, ${numUsers - 1}${titleEscaped}]]`;
+                            }, ${numUsers - 1}${titleEscaped}]]`
                         }
 
                         notifications[modifyIndex].path =
-                            set[set.length - 1].path;
+                            set[set.length - 1].path
                     }
-                    break;
+                    break
 
-                case "new_register":
+                case 'new_register':
                     notifications[
                         modifyIndex
-                    ].bodyShort = `[[notifications:${mergeId}_multiple, ${set.length}]]`;
-                    break;
+                    ].bodyShort = `[[notifications:${mergeId}_multiple, ${set.length}]]`
+                    break
             }
 
             // Filter out duplicates
             notifications = notifications.filter((notifObj, idx) => {
                 if (!notifObj || !notifObj.mergeId) {
-                    return true;
+                    return true
                 }
 
                 return !(
                     notifObj.mergeId ===
                         mergeId +
-                            (differentiator ? `|${differentiator}` : "") &&
+                            (differentiator ? `|${differentiator}` : '') &&
                     idx !== modifyIndex
-                );
-            });
-        });
+                )
+            })
+        })
 
-        return notifications;
-    }, notifications);
+        return notifications
+    }, notifications)
 
-    const data = await plugins.hooks.fire("filter:notifications.merge", {
+    const data = await plugins.hooks.fire('filter:notifications.merge', {
         notifications: notifications,
-    });
-    return data && data.notifications;
-};
+    })
+    return data && data.notifications
+}
 
-require("./promisify")(Notifications);
+require('./promisify')(Notifications)

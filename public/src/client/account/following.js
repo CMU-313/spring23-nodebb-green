@@ -1,11 +1,11 @@
-"use strict";
+'use strict'
 
-define("forum/account/following", ["forum/account/header"], function (header) {
-    const Following = {};
+define('forum/account/following', ['forum/account/header'], function (header) {
+    const Following = {}
 
     Following.init = function () {
-        header.init();
-    };
+        header.init()
+    }
 
-    return Following;
-});
+    return Following
+})

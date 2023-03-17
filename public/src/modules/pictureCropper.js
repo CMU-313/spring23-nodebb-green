@@ -1,73 +1,73 @@
-"use strict";
+'use strict'
 
-define("pictureCropper", ["alerts"], function (alerts) {
-    const module = {};
+define('pictureCropper', ['alerts'], function (alerts) {
+    const module = {}
 
     module.show = function (data, callback) {
         const fileSize =
-            data.hasOwnProperty("fileSize") && data.fileSize !== undefined
+            data.hasOwnProperty('fileSize') && data.fileSize !== undefined
                 ? parseInt(data.fileSize, 10)
-                : false;
+                : false
         app.parseAndTranslate(
-            "partials/modals/upload_file_modal",
+            'partials/modals/upload_file_modal',
             {
                 showHelp:
-                    data.hasOwnProperty("showHelp") &&
+                    data.hasOwnProperty('showHelp') &&
                     data.showHelp !== undefined
                         ? data.showHelp
                         : true,
                 fileSize: fileSize,
-                title: data.title || "[[global:upload_file]]",
-                description: data.description || "",
-                button: data.button || "[[global:upload]]",
-                accept: data.accept ? data.accept.replace(/,/g, "&#44; ") : "",
+                title: data.title || '[[global:upload_file]]',
+                description: data.description || '',
+                button: data.button || '[[global:upload]]',
+                accept: data.accept ? data.accept.replace(/,/g, '&#44; ') : '',
             },
             function (uploadModal) {
-                uploadModal.modal("show");
-                uploadModal.on("hidden.bs.modal", function () {
-                    uploadModal.remove();
-                });
+                uploadModal.modal('show')
+                uploadModal.on('hidden.bs.modal', function () {
+                    uploadModal.remove()
+                })
 
-                const uploadForm = uploadModal.find("#uploadForm");
+                const uploadForm = uploadModal.find('#uploadForm')
                 if (data.route) {
-                    uploadForm.attr("action", data.route);
+                    uploadForm.attr('action', data.route)
                 }
 
                 uploadModal
-                    .find("#fileUploadSubmitBtn")
-                    .on("click", function () {
-                        $(this).addClass("disabled");
-                        data.uploadModal = uploadModal;
-                        onSubmit(data, callback);
-                        return false;
-                    });
+                    .find('#fileUploadSubmitBtn')
+                    .on('click', function () {
+                        $(this).addClass('disabled')
+                        data.uploadModal = uploadModal
+                        onSubmit(data, callback)
+                        return false
+                    })
             }
-        );
-    };
+        )
+    }
 
     module.handleImageCrop = function (data, callback) {
-        $("#crop-picture-modal").remove();
+        $('#crop-picture-modal').remove()
         app.parseAndTranslate(
-            "modals/crop_picture",
+            'modals/crop_picture',
             {
                 url: utils.escapeHTML(data.url),
             },
             async function (cropperModal) {
                 cropperModal
                     .modal({
-                        backdrop: "static",
+                        backdrop: 'static',
                     })
-                    .modal("show");
+                    .modal('show')
 
                 // Set cropper image max-height based on viewport
-                const cropBoxHeight = parseInt($(window).height() / 2, 10);
-                const img = document.getElementById("cropped-image");
-                $(img).css("max-height", cropBoxHeight);
+                const cropBoxHeight = parseInt($(window).height() / 2, 10)
+                const img = document.getElementById('cropped-image')
+                $(img).css('max-height', cropBoxHeight)
                 const Cropper = (
                     await import(
-                        /* webpackChunkName: "cropperjs" */ "cropperjs"
+                        /* webpackChunkName: "cropperjs" */ 'cropperjs'
                     )
-                ).default;
+                ).default
 
                 let cropperTool = new Cropper(img, {
                     aspectRatio: data.aspectRatio,
@@ -82,7 +82,7 @@ define("pictureCropper", ["alerts"], function (alerts) {
                             ) {
                                 cropperTool.setCropBoxData({
                                     width: data.imageDimension,
-                                });
+                                })
                             }
                             if (
                                 cropperTool.cropBoxData.height >
@@ -90,224 +90,224 @@ define("pictureCropper", ["alerts"], function (alerts) {
                             ) {
                                 cropperTool.setCropBoxData({
                                     height: data.imageDimension,
-                                });
+                                })
                             }
                         }
                     },
                     ready: function () {
                         if (!checkCORS(cropperTool, data)) {
-                            return cropperModal.modal("hide");
+                            return cropperModal.modal('hide')
                         }
 
                         if (data.restrictImageDimension) {
                             const origDimension =
-                                img.width < img.height ? img.width : img.height;
+                                img.width < img.height ? img.width : img.height
                             const dimension =
                                 origDimension > data.imageDimension
                                     ? data.imageDimension
-                                    : origDimension;
+                                    : origDimension
                             cropperTool.setCropBoxData({
                                 width: dimension,
                                 height: dimension,
-                            });
+                            })
                         }
 
-                        cropperModal.find(".rotate").on("click", function () {
-                            const degrees = this.getAttribute("data-degrees");
-                            cropperTool.rotate(degrees);
-                        });
+                        cropperModal.find('.rotate').on('click', function () {
+                            const degrees = this.getAttribute('data-degrees')
+                            cropperTool.rotate(degrees)
+                        })
 
-                        cropperModal.find(".flip").on("click", function () {
-                            const option = this.getAttribute("data-option");
-                            const method = this.getAttribute("data-method");
-                            if (method === "scaleX") {
-                                cropperTool.scaleX(option);
+                        cropperModal.find('.flip').on('click', function () {
+                            const option = this.getAttribute('data-option')
+                            const method = this.getAttribute('data-method')
+                            if (method === 'scaleX') {
+                                cropperTool.scaleX(option)
                             } else {
-                                cropperTool.scaleY(option);
+                                cropperTool.scaleY(option)
                             }
-                            this.setAttribute("data-option", option * -1);
-                        });
+                            this.setAttribute('data-option', option * -1)
+                        })
 
-                        cropperModal.find(".reset").on("click", function () {
-                            cropperTool.reset();
-                        });
+                        cropperModal.find('.reset').on('click', function () {
+                            cropperTool.reset()
+                        })
 
-                        cropperModal.find(".crop-btn").on("click", function () {
-                            $(this).addClass("disabled");
-                            const imageData = checkCORS(cropperTool, data);
+                        cropperModal.find('.crop-btn').on('click', function () {
+                            $(this).addClass('disabled')
+                            const imageData = checkCORS(cropperTool, data)
                             if (!imageData) {
-                                return;
+                                return
                             }
 
                             cropperModal
-                                .find("#upload-progress-bar")
-                                .css("width", "0%");
+                                .find('#upload-progress-bar')
+                                .css('width', '0%')
                             cropperModal
-                                .find("#upload-progress-box")
+                                .find('#upload-progress-box')
                                 .show()
-                                .removeClass("hide");
+                                .removeClass('hide')
 
                             socketUpload(
                                 {
                                     data: data,
                                     imageData: imageData,
                                     progressBarEl: cropperModal.find(
-                                        "#upload-progress-bar"
+                                        '#upload-progress-bar'
                                     ),
                                 },
                                 function (err, result) {
                                     if (err) {
                                         cropperModal
-                                            .find("#upload-progress-box")
-                                            .hide();
+                                            .find('#upload-progress-box')
+                                            .hide()
                                         cropperModal
-                                            .find(".upload-btn")
-                                            .removeClass("disabled");
+                                            .find('.upload-btn')
+                                            .removeClass('disabled')
                                         cropperModal
-                                            .find(".crop-btn")
-                                            .removeClass("disabled");
-                                        return alerts.error(err);
+                                            .find('.crop-btn')
+                                            .removeClass('disabled')
+                                        return alerts.error(err)
                                     }
 
-                                    callback(result.url);
-                                    cropperModal.modal("hide");
+                                    callback(result.url)
+                                    cropperModal.modal('hide')
                                 }
-                            );
-                        });
+                            )
+                        })
 
                         cropperModal
-                            .find(".upload-btn")
-                            .on("click", async function () {
-                                $(this).addClass("disabled");
-                                cropperTool.destroy();
+                            .find('.upload-btn')
+                            .on('click', async function () {
+                                $(this).addClass('disabled')
+                                cropperTool.destroy()
                                 const Cropper = (
                                     await import(
-                                        /* webpackChunkName: "cropperjs" */ "cropperjs"
+                                        /* webpackChunkName: "cropperjs" */ 'cropperjs'
                                     )
-                                ).default;
+                                ).default
                                 cropperTool = new Cropper(img, {
                                     viewMode: 1,
                                     autoCropArea: 1,
                                     ready: function () {
                                         cropperModal
-                                            .find(".crop-btn")
-                                            .trigger("click");
+                                            .find('.crop-btn')
+                                            .trigger('click')
                                     },
-                                });
-                            });
+                                })
+                            })
                     },
-                });
+                })
             }
-        );
-    };
+        )
+    }
 
     function socketUpload(params, callback) {
-        const socketData = {};
-        socketData[params.data.paramName] = params.data.paramValue;
-        socketData.method = params.data.socketMethod;
-        socketData.size = params.imageData.length;
-        socketData.progress = 0;
+        const socketData = {}
+        socketData[params.data.paramName] = params.data.paramValue
+        socketData.method = params.data.socketMethod
+        socketData.size = params.imageData.length
+        socketData.progress = 0
 
-        const chunkSize = 100000;
+        const chunkSize = 100000
         function doUpload() {
             const chunk = params.imageData.slice(
                 socketData.progress,
                 socketData.progress + chunkSize
-            );
+            )
             socket.emit(
-                "uploads.upload",
+                'uploads.upload',
                 {
                     chunk: chunk,
                     params: socketData,
                 },
                 function (err, result) {
                     if (err) {
-                        return alerts.error(err);
+                        return alerts.error(err)
                     }
 
                     if (socketData.progress + chunkSize < socketData.size) {
-                        socketData.progress += chunk.length;
+                        socketData.progress += chunk.length
                         params.progressBarEl.css(
-                            "width",
+                            'width',
                             (
                                 (socketData.progress / socketData.size) *
                                 100
-                            ).toFixed(2) + "%"
-                        );
-                        return setTimeout(doUpload, 100);
+                            ).toFixed(2) + '%'
+                        )
+                        return setTimeout(doUpload, 100)
                     }
-                    params.progressBarEl.css("width", "100%");
-                    callback(null, result);
+                    params.progressBarEl.css('width', '100%')
+                    callback(null, result)
                 }
-            );
+            )
         }
-        doUpload();
+        doUpload()
     }
 
     function checkCORS(cropperTool, data) {
-        let imageData;
+        let imageData
         try {
             imageData = data.imageType
                 ? cropperTool.getCroppedCanvas().toDataURL(data.imageType)
-                : cropperTool.getCroppedCanvas().toDataURL();
+                : cropperTool.getCroppedCanvas().toDataURL()
         } catch (err) {
             const corsErrors = [
-                "The operation is insecure.",
+                'The operation is insecure.',
                 "Failed to execute 'toDataURL' on 'HTMLCanvasElement': Tainted canvases may not be exported.",
-            ];
+            ]
             if (corsErrors.indexOf(err.message) !== -1) {
-                alerts.error("[[error:cors-error]]");
+                alerts.error('[[error:cors-error]]')
             } else {
-                alerts.error(err.message);
+                alerts.error(err.message)
             }
-            return;
+            return
         }
-        return imageData;
+        return imageData
     }
 
     function onSubmit(data, callback) {
         function showAlert(type, message) {
-            if (type === "error") {
+            if (type === 'error') {
                 data.uploadModal
-                    .find("#fileUploadSubmitBtn")
-                    .removeClass("disabled");
+                    .find('#fileUploadSubmitBtn')
+                    .removeClass('disabled')
             }
             data.uploadModal
-                .find("#alert-" + type)
+                .find('#alert-' + type)
                 .translateText(message)
-                .removeClass("hide");
+                .removeClass('hide')
         }
-        const fileInput = data.uploadModal.find("#fileInput");
+        const fileInput = data.uploadModal.find('#fileInput')
         if (!fileInput.val()) {
-            return showAlert("error", "[[uploads:select-file-to-upload]]");
+            return showAlert('error', '[[uploads:select-file-to-upload]]')
         }
 
-        const file = fileInput[0].files[0];
+        const file = fileInput[0].files[0]
         const fileSize =
-            data.hasOwnProperty("fileSize") && data.fileSize !== undefined
+            data.hasOwnProperty('fileSize') && data.fileSize !== undefined
                 ? parseInt(data.fileSize, 10)
-                : false;
+                : false
         if (fileSize && file.size > fileSize * 1024) {
             return showAlert(
-                "error",
-                "[[error:file-too-big, " + fileSize + "]]"
-            );
+                'error',
+                '[[error:file-too-big, ' + fileSize + ']]'
+            )
         }
 
-        if (file.name.endsWith(".gif")) {
-            require(["uploader"], function (uploader) {
-                uploader.ajaxSubmit(data.uploadModal, callback);
-            });
-            return;
+        if (file.name.endsWith('.gif')) {
+            require(['uploader'], function (uploader) {
+                uploader.ajaxSubmit(data.uploadModal, callback)
+            })
+            return
         }
 
-        const reader = new FileReader();
+        const reader = new FileReader()
         reader.addEventListener(
-            "load",
+            'load',
             function () {
-                const imageUrl = reader.result;
+                const imageUrl = reader.result
 
-                data.uploadModal.modal("hide");
+                data.uploadModal.modal('hide')
 
                 module.handleImageCrop(
                     {
@@ -322,15 +322,15 @@ define("pictureCropper", ["alerts"], function (alerts) {
                         paramValue: data.paramValue,
                     },
                     callback
-                );
+                )
             },
             false
-        );
+        )
 
         if (file) {
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(file)
         }
     }
 
-    return module;
-});
+    return module
+})

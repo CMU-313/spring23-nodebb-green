@@ -1,55 +1,55 @@
-"use strict";
+'use strict'
 
-const path = require("path");
-const nconf = require("nconf");
+const path = require('path')
+const nconf = require('nconf')
 
 nconf.argv().env({
-    separator: "__",
-});
-const winston = require("winston");
-const { fork } = require("child_process");
+    separator: '__',
+})
+const winston = require('winston')
+const { fork } = require('child_process')
 
-const { env } = process;
-let worker;
+const { env } = process
+let worker
 
-env.NODE_ENV = env.NODE_ENV || "development";
+env.NODE_ENV = env.NODE_ENV || 'development'
 
 const configFile = path.resolve(
     __dirname,
-    nconf.any(["config", "CONFIG"]) || "config.json"
-);
-const prestart = require("./src/prestart");
+    nconf.any(['config', 'CONFIG']) || 'config.json'
+)
+const prestart = require('./src/prestart')
 
-prestart.loadConfig(configFile);
+prestart.loadConfig(configFile)
 
-const db = require("./src/database");
-const plugins = require("./src/plugins");
+const db = require('./src/database')
+const plugins = require('./src/plugins')
 
 module.exports = function (grunt) {
-    const args = [];
+    const args = []
 
-    if (!grunt.option("verbose")) {
-        args.push("--log-level=info");
-        nconf.set("log-level", "info");
+    if (!grunt.option('verbose')) {
+        args.push('--log-level=info')
+        nconf.set('log-level', 'info')
     }
-    prestart.setupWinston();
+    prestart.setupWinston()
 
     grunt.initConfig({
         watch: {},
-    });
+    })
 
-    grunt.loadNpmTasks("grunt-contrib-watch");
+    grunt.loadNpmTasks('grunt-contrib-watch')
 
-    grunt.registerTask("default", ["watch"]);
+    grunt.registerTask('default', ['watch'])
 
-    grunt.registerTask("init", async function () {
-        const done = this.async();
-        let pluginList = [];
-        if (!process.argv.includes("--core")) {
-            await db.init();
-            pluginList = await plugins.getActive();
-            if (!pluginList.includes("nodebb-plugin-composer-default")) {
-                pluginList.push("nodebb-plugin-composer-default");
+    grunt.registerTask('init', async function () {
+        const done = this.async()
+        let pluginList = []
+        if (!process.argv.includes('--core')) {
+            await db.init()
+            pluginList = await plugins.getActive()
+            if (!pluginList.includes('nodebb-plugin-composer-default')) {
+                pluginList.push('nodebb-plugin-composer-default')
             }
         }
 
@@ -65,7 +65,7 @@ module.exports = function (grunt) {
                 pluginList.map(
                     (p) => `node_modules/${p}/+(public|static)/**/*.css`
                 )
-            );
+            )
 
         const styleUpdated_Admin = pluginList
             .map((p) => `node_modules/${p}/*.less`)
@@ -79,29 +79,29 @@ module.exports = function (grunt) {
                 pluginList.map(
                     (p) => `node_modules/${p}/+(public|static)/**/*.css`
                 )
-            );
+            )
 
         const clientUpdated = pluginList.map(
             (p) => `node_modules/${p}/+(public|static)/**/*.js`
-        );
+        )
         const serverUpdated = pluginList
             .map((p) => `node_modules/${p}/*.js`)
             .concat(
                 pluginList.map((p) => `node_modules/${p}/+(lib|src)/**/*.js`)
-            );
+            )
 
         const templatesUpdated = pluginList.map(
             (p) => `node_modules/${p}/+(public|static|templates)/**/*.tpl`
-        );
+        )
         const langUpdated = pluginList.map(
             (p) => `node_modules/${p}/+(public|static|languages)/**/*.json`
-        );
+        )
 
-        grunt.config(["watch"], {
+        grunt.config(['watch'], {
             styleUpdated_Client: {
                 files: [
-                    "public/less/**/*.less",
-                    "themes/**/*.less",
+                    'public/less/**/*.less',
+                    'themes/**/*.less',
                     ...styleUpdated_Client,
                 ],
                 options: {
@@ -110,8 +110,8 @@ module.exports = function (grunt) {
             },
             styleUpdated_Admin: {
                 files: [
-                    "public/less/**/*.less",
-                    "themes/**/*.less",
+                    'public/less/**/*.less',
+                    'themes/**/*.less',
                     ...styleUpdated_Admin,
                 ],
                 options: {
@@ -120,10 +120,10 @@ module.exports = function (grunt) {
             },
             clientUpdated: {
                 files: [
-                    "public/src/**/*.js",
-                    "public/vendor/**/*.js",
+                    'public/src/**/*.js',
+                    'public/vendor/**/*.js',
                     ...clientUpdated,
-                    "node_modules/benchpressjs/build/benchpress.js",
+                    'node_modules/benchpressjs/build/benchpress.js',
                 ],
                 options: {
                     interval: 1000,
@@ -131,14 +131,14 @@ module.exports = function (grunt) {
             },
             serverUpdated: {
                 files: [
-                    "app.js",
-                    "install/*.js",
-                    "src/**/*.js",
-                    "public/src/modules/translator.common.js",
-                    "public/src/modules/helpers.common.js",
-                    "public/src/utils.common.js",
+                    'app.js',
+                    'install/*.js',
+                    'src/**/*.js',
+                    'public/src/modules/translator.common.js',
+                    'public/src/modules/helpers.common.js',
+                    'public/src/utils.common.js',
                     serverUpdated,
-                    "!src/upgrades/**",
+                    '!src/upgrades/**',
                 ],
                 options: {
                     interval: 1000,
@@ -146,10 +146,10 @@ module.exports = function (grunt) {
             },
             typescriptUpdated: {
                 files: [
-                    "install/*.ts",
-                    "src/**/*.ts",
-                    "public/src/**/*.ts",
-                    "public/vendor/**/*.ts",
+                    'install/*.ts',
+                    'src/**/*.ts',
+                    'public/src/**/*.ts',
+                    'public/vendor/**/*.ts',
                 ],
                 options: {
                     interval: 1000,
@@ -157,8 +157,8 @@ module.exports = function (grunt) {
             },
             templatesUpdated: {
                 files: [
-                    "src/views/**/*.tpl",
-                    "themes/**/*.tpl",
+                    'src/views/**/*.tpl',
+                    'themes/**/*.tpl',
                     ...templatesUpdated,
                 ],
                 options: {
@@ -167,77 +167,77 @@ module.exports = function (grunt) {
             },
             langUpdated: {
                 files: [
-                    "public/language/en-GB/*.json",
-                    "public/language/en-GB/**/*.json",
+                    'public/language/en-GB/*.json',
+                    'public/language/en-GB/**/*.json',
                     ...langUpdated,
                 ],
                 options: {
                     interval: 1000,
                 },
             },
-        });
-        const build = require("./src/meta/build");
-        if (!grunt.option("skip")) {
-            await build.build(true, { watch: true });
+        })
+        const build = require('./src/meta/build')
+        if (!grunt.option('skip')) {
+            await build.build(true, { watch: true })
         }
-        run();
-        done();
-    });
+        run()
+        done()
+    })
 
     function run() {
         if (worker) {
-            worker.kill();
+            worker.kill()
         }
 
-        const execArgv = [];
-        const inspect = process.argv.find((a) => a.startsWith("--inspect"));
+        const execArgv = []
+        const inspect = process.argv.find((a) => a.startsWith('--inspect'))
 
         if (inspect) {
-            execArgv.push(inspect);
+            execArgv.push(inspect)
         }
 
-        worker = fork("app.js", args, {
+        worker = fork('app.js', args, {
             env,
             execArgv,
-        });
+        })
     }
 
-    grunt.task.run("init");
+    grunt.task.run('init')
 
-    grunt.event.removeAllListeners("watch");
-    grunt.event.on("watch", (action, filepath, target) => {
-        let compiling;
-        if (target === "styleUpdated_Client") {
-            compiling = "clientCSS";
-        } else if (target === "styleUpdated_Admin") {
-            compiling = "acpCSS";
+    grunt.event.removeAllListeners('watch')
+    grunt.event.on('watch', (action, filepath, target) => {
+        let compiling
+        if (target === 'styleUpdated_Client') {
+            compiling = 'clientCSS'
+        } else if (target === 'styleUpdated_Admin') {
+            compiling = 'acpCSS'
         } else if (
-            target === "clientUpdated" ||
-            target === "typescriptUpdated"
+            target === 'clientUpdated' ||
+            target === 'typescriptUpdated'
         ) {
-            compiling = "js";
-        } else if (target === "templatesUpdated") {
-            compiling = "tpl";
-        } else if (target === "langUpdated") {
-            compiling = "lang";
-        } else if (target === "serverUpdated") {
+            compiling = 'js'
+        } else if (target === 'templatesUpdated') {
+            compiling = 'tpl'
+        } else if (target === 'langUpdated') {
+            compiling = 'lang'
+        } else if (target === 'serverUpdated') {
             // empty require cache
-            const paths = ["./src/meta/build.js", "./src/meta/index.js"];
-            paths.forEach((p) => delete require.cache[require.resolve(p)]);
-            return run();
+            const paths = ['./src/meta/build.js', './src/meta/index.js']
+            paths.forEach((p) => delete require.cache[require.resolve(p)])
+            return run()
         }
 
-        require("./src/meta/build").build(
+        require('./src/meta/build').build(
             [compiling],
             { webpack: false },
             (err) => {
                 if (err) {
-                    winston.error(err.stack);
+                    winston.error(err.stack)
                 }
                 if (worker) {
-                    worker.send({ compiling: compiling });
+                    worker.send({ compiling: compiling })
                 }
             }
-        );
-    });
-};
+        )
+    })
+}

@@ -1,11 +1,11 @@
-"use strict";
+'use strict'
 
 module.exports.render = function (template) {
     if (template.match(/^admin/)) {
-        return;
+        return
     }
 
-    const locations = Object.keys(ajaxify.data.widgets);
+    const locations = Object.keys(ajaxify.data.widgets)
 
     locations.forEach(function (location) {
         let area = $(
@@ -14,31 +14,31 @@ module.exports.render = function (template) {
                 '"],#content [data-widget-area="' +
                 location +
                 '"]'
-        ).eq(0);
+        ).eq(0)
         if (area.length) {
-            return;
+            return
         }
 
-        const widgetsAtLocation = ajaxify.data.widgets[location] || [];
-        let html = "";
+        const widgetsAtLocation = ajaxify.data.widgets[location] || []
+        let html = ''
 
         widgetsAtLocation.forEach(function (widget) {
-            html += widget.html;
-        });
+            html += widget.html
+        })
 
         if (
-            location === "footer" &&
+            location === 'footer' &&
             !$(
                 '#content [widget-area="footer"],#content [data-widget-area="footer"]'
             ).length
         ) {
-            $("#content").append(
+            $('#content').append(
                 $(
                     '<div class="row"><div data-widget-area="footer" class="col-xs-12"></div></div>'
                 )
-            );
+            )
         } else if (
-            location === "sidebar" &&
+            location === 'sidebar' &&
             !$(
                 '#content [widget-area="sidebar"],#content [data-widget-area="sidebar"]'
             ).length
@@ -50,7 +50,7 @@ module.exports.render = function (template) {
                         $(
                             '<div class="row"><div class="col-lg-9 col-xs-12"></div><div data-widget-area="sidebar" class="col-lg-3 col-xs-12"></div></div></div>'
                         )
-                    );
+                    )
             } else if ($('[component="groups/cover"]').length) {
                 $('[component="groups/cover"]')
                     .nextAll()
@@ -58,25 +58,25 @@ module.exports.render = function (template) {
                         $(
                             '<div class="row"><div class="col-lg-9 col-xs-12"></div><div data-widget-area="sidebar" class="col-lg-3 col-xs-12"></div></div></div>'
                         )
-                    );
+                    )
             } else {
-                $("#content > *").wrapAll(
+                $('#content > *').wrapAll(
                     $(
                         '<div class="row"><div class="col-lg-9 col-xs-12"></div><div data-widget-area="sidebar" class="col-lg-3 col-xs-12"></div></div></div>'
                     )
-                );
+                )
             }
         } else if (
-            location === "header" &&
+            location === 'header' &&
             !$(
                 '#content [widget-area="header"],#content [data-widget-area="header"]'
             ).length
         ) {
-            $("#content").prepend(
+            $('#content').prepend(
                 $(
                     '<div class="row"><div data-widget-area="header" class="col-xs-12"></div></div>'
                 )
-            );
+            )
         }
 
         area = $(
@@ -85,18 +85,18 @@ module.exports.render = function (template) {
                 '"],#content [data-widget-area="' +
                 location +
                 '"]'
-        ).eq(0);
+        ).eq(0)
         if (html && area.length) {
-            area.html(html);
-            area.find("img:not(.not-responsive)").addClass("img-responsive");
+            area.html(html)
+            area.find('img:not(.not-responsive)').addClass('img-responsive')
         }
 
         if (widgetsAtLocation.length) {
-            area.removeClass("hidden");
+            area.removeClass('hidden')
         }
-    });
+    })
 
-    require(["hooks"], function (hooks) {
-        hooks.fire("action:widgets.loaded", {});
-    });
-};
+    require(['hooks'], function (hooks) {
+        hooks.fire('action:widgets.loaded', {})
+    })
+}

@@ -1,16 +1,16 @@
-"use strict";
+'use strict'
 
-define("notifications", [
-    "translator",
-    "components",
-    "navigator",
-    "tinycon",
-    "hooks",
-    "alerts",
+define('notifications', [
+    'translator',
+    'components',
+    'navigator',
+    'tinycon',
+    'hooks',
+    'alerts',
 ], function (translator, components, navigator, Tinycon, hooks, alerts) {
-    const Notifications = {};
+    const Notifications = {}
 
-    let unreadNotifs = {};
+    let unreadNotifs = {}
 
     const _addShortTimeagoString = ({ notifications: notifs }) =>
         new Promise((resolve) => {
@@ -18,173 +18,173 @@ define("notifications", [
                 for (let i = 0; i < notifs.length; i += 1) {
                     notifs[i].timeago = $.timeago(
                         new Date(parseInt(notifs[i].datetime, 10))
-                    );
+                    )
                 }
-                translator.toggleTimeagoShorthand();
-                resolve({ notifications: notifs });
-            });
-        });
-    hooks.on("filter:notifications.load", _addShortTimeagoString);
+                translator.toggleTimeagoShorthand()
+                resolve({ notifications: notifs })
+            })
+        })
+    hooks.on('filter:notifications.load', _addShortTimeagoString)
 
     Notifications.loadNotifications = function (notifList, callback) {
-        callback = callback || function () {};
-        socket.emit("notifications.get", null, function (err, data) {
+        callback = callback || function () {}
+        socket.emit('notifications.get', null, function (err, data) {
             if (err) {
-                return alerts.error(err);
+                return alerts.error(err)
             }
 
             const notifs = data.unread.concat(data.read).sort(function (a, b) {
                 return parseInt(a.datetime, 10) > parseInt(b.datetime, 10)
                     ? -1
-                    : 1;
-            });
+                    : 1
+            })
 
             hooks
-                .fire("filter:notifications.load", { notifications: notifs })
+                .fire('filter:notifications.load', { notifications: notifs })
                 .then(({ notifications }) => {
                     app.parseAndTranslate(
-                        "partials/notifications_list",
+                        'partials/notifications_list',
                         { notifications },
                         function (html) {
-                            notifList.html(html);
+                            notifList.html(html)
                             notifList
-                                .off("click")
-                                .on("click", "[data-nid]", function (ev) {
-                                    const notifEl = $(this);
+                                .off('click')
+                                .on('click', '[data-nid]', function (ev) {
+                                    const notifEl = $(this)
                                     if (scrollToPostIndexIfOnPage(notifEl)) {
-                                        ev.stopPropagation();
-                                        ev.preventDefault();
+                                        ev.stopPropagation()
+                                        ev.preventDefault()
                                         components
-                                            .get("notifications/list")
-                                            .dropdown("toggle");
+                                            .get('notifications/list')
+                                            .dropdown('toggle')
                                     }
 
-                                    const unread = notifEl.hasClass("unread");
+                                    const unread = notifEl.hasClass('unread')
                                     if (!unread) {
-                                        return;
+                                        return
                                     }
-                                    const nid = notifEl.attr("data-nid");
-                                    markNotification(nid, true);
-                                });
+                                    const nid = notifEl.attr('data-nid')
+                                    markNotification(nid, true)
+                                })
                             components
-                                .get("notifications")
+                                .get('notifications')
                                 .on(
-                                    "click",
-                                    ".mark-all-read",
+                                    'click',
+                                    '.mark-all-read',
                                     Notifications.markAllRead
-                                );
+                                )
 
-                            notifList.on("click", ".mark-read", function () {
-                                const liEl = $(this).parents("li");
-                                const unread = liEl.hasClass("unread");
-                                const nid = liEl.attr("data-nid");
+                            notifList.on('click', '.mark-read', function () {
+                                const liEl = $(this).parents('li')
+                                const unread = liEl.hasClass('unread')
+                                const nid = liEl.attr('data-nid')
                                 markNotification(nid, unread, function () {
-                                    liEl.toggleClass("unread");
-                                });
-                                return false;
-                            });
+                                    liEl.toggleClass('unread')
+                                })
+                                return false
+                            })
 
-                            hooks.fire("action:notifications.loaded", {
+                            hooks.fire('action:notifications.loaded', {
                                 notifications: notifs,
                                 list: notifList,
-                            });
-                            callback();
+                            })
+                            callback()
                         }
-                    );
-                });
-        });
-    };
+                    )
+                })
+        })
+    }
 
     Notifications.onNewNotification = function (notifData) {
-        if (ajaxify.currentPage === "notifications") {
-            ajaxify.refresh();
+        if (ajaxify.currentPage === 'notifications') {
+            ajaxify.refresh()
         }
 
-        socket.emit("notifications.getCount", function (err, count) {
+        socket.emit('notifications.getCount', function (err, count) {
             if (err) {
-                return alerts.error(err);
+                return alerts.error(err)
             }
 
-            Notifications.updateNotifCount(count);
-        });
+            Notifications.updateNotifCount(count)
+        })
 
         if (!unreadNotifs[notifData.nid]) {
-            unreadNotifs[notifData.nid] = true;
+            unreadNotifs[notifData.nid] = true
         }
-    };
+    }
 
     function markNotification(nid, read, callback) {
         socket.emit(
-            "notifications.mark" + (read ? "Read" : "Unread"),
+            'notifications.mark' + (read ? 'Read' : 'Unread'),
             nid,
             function (err) {
                 if (err) {
-                    return alerts.error(err);
+                    return alerts.error(err)
                 }
 
                 if (read && unreadNotifs[nid]) {
-                    delete unreadNotifs[nid];
+                    delete unreadNotifs[nid]
                 }
                 if (callback) {
-                    callback();
+                    callback()
                 }
             }
-        );
+        )
     }
 
     function scrollToPostIndexIfOnPage(notifEl) {
         // Scroll to index if already in topic (gh#5873)
-        const pid = notifEl.attr("data-pid");
-        const path = notifEl.attr("data-path");
-        const postEl = components.get("post", "pid", pid);
+        const pid = notifEl.attr('data-pid')
+        const path = notifEl.attr('data-path')
+        const postEl = components.get('post', 'pid', pid)
         if (
-            path.startsWith(config.relative_path + "/post/") &&
+            path.startsWith(config.relative_path + '/post/') &&
             pid &&
             postEl.length &&
             ajaxify.data.template.topic
         ) {
-            navigator.scrollToIndex(postEl.attr("data-index"), true);
-            return true;
+            navigator.scrollToIndex(postEl.attr('data-index'), true)
+            return true
         }
-        return false;
+        return false
     }
 
     Notifications.updateNotifCount = function (count) {
-        const notifIcon = components.get("notifications/icon");
-        count = Math.max(0, count);
+        const notifIcon = components.get('notifications/icon')
+        count = Math.max(0, count)
         if (count > 0) {
-            notifIcon.removeClass("fa-bell-o").addClass("fa-bell");
+            notifIcon.removeClass('fa-bell-o').addClass('fa-bell')
         } else {
-            notifIcon.removeClass("fa-bell").addClass("fa-bell-o");
+            notifIcon.removeClass('fa-bell').addClass('fa-bell-o')
         }
 
-        notifIcon.toggleClass("unread-count", count > 0);
-        notifIcon.attr("data-content", count > 99 ? "99+" : count);
+        notifIcon.toggleClass('unread-count', count > 0)
+        notifIcon.attr('data-content', count > 99 ? '99+' : count)
 
         const payload = {
             count: count,
             updateFavicon: true,
-        };
-        hooks.fire("action:notification.updateCount", payload);
+        }
+        hooks.fire('action:notification.updateCount', payload)
 
         if (payload.updateFavicon) {
-            Tinycon.setBubble(count > 99 ? "99+" : count);
+            Tinycon.setBubble(count > 99 ? '99+' : count)
         }
 
         if (navigator.setAppBadge) {
             // feature detection
-            navigator.setAppBadge(count);
+            navigator.setAppBadge(count)
         }
-    };
+    }
 
     Notifications.markAllRead = function () {
-        socket.emit("notifications.markAllRead", function (err) {
+        socket.emit('notifications.markAllRead', function (err) {
             if (err) {
-                alerts.error(err);
+                alerts.error(err)
             }
-            unreadNotifs = {};
-        });
-    };
+            unreadNotifs = {}
+        })
+    }
 
-    return Notifications;
-});
+    return Notifications
+})

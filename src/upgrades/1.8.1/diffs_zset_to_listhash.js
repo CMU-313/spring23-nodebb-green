@@ -1,17 +1,17 @@
-"use strict";
+'use strict'
 
-const async = require("async");
-const db = require("../../database");
-const batch = require("../../batch");
+const async = require('async')
+const db = require('../../database')
+const batch = require('../../batch')
 
 module.exports = {
-    name: "Reformatting post diffs to be stored in lists and hash instead of single zset",
+    name: 'Reformatting post diffs to be stored in lists and hash instead of single zset',
     timestamp: Date.UTC(2018, 2, 15),
     method: function (callback) {
-        const { progress } = this;
+        const { progress } = this
 
         batch.processSortedSet(
-            "posts:pid",
+            'posts:pid',
             (pids, next) => {
                 async.each(
                     pids,
@@ -22,12 +22,12 @@ module.exports = {
                             -1,
                             (err, diffs) => {
                                 if (err) {
-                                    return next(err);
+                                    return next(err)
                                 }
 
                                 if (!diffs || !diffs.length) {
-                                    progress.incr();
-                                    return next();
+                                    progress.incr()
+                                    return next()
                                 }
 
                                 // For each diff, push to list
@@ -55,34 +55,34 @@ module.exports = {
                                                 ),
                                             ],
                                             next
-                                        );
+                                        )
                                     },
                                     (err) => {
                                         if (err) {
-                                            return next(err);
+                                            return next(err)
                                         }
 
-                                        progress.incr();
-                                        return next();
+                                        progress.incr()
+                                        return next()
                                     }
-                                );
+                                )
                             }
-                        );
+                        )
                     },
                     (err) => {
                         if (err) {
                             // Probably type error, ok to incr and continue
-                            progress.incr();
+                            progress.incr()
                         }
 
-                        return next();
+                        return next()
                     }
-                );
+                )
             },
             {
                 progress: progress,
             },
             callback
-        );
+        )
     },
-};
+}

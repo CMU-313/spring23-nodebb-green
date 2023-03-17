@@ -1,46 +1,46 @@
-"use strict";
+'use strict'
 
-const meta = require("../../meta");
-const privileges = require("../../privileges");
-const analytics = require("../../analytics");
+const meta = require('../../meta')
+const privileges = require('../../privileges')
+const analytics = require('../../analytics')
 
-const helpers = require("../helpers");
+const helpers = require('../helpers')
 
-const Admin = module.exports;
+const Admin = module.exports
 
 Admin.updateSetting = async (req, res) => {
-    const ok = await privileges.admin.can("admin:settings", req.uid);
+    const ok = await privileges.admin.can('admin:settings', req.uid)
 
     if (!ok) {
-        return helpers.formatApiResponse(403, res);
+        return helpers.formatApiResponse(403, res)
     }
 
-    await meta.configs.set(req.params.setting, req.body.value);
-    helpers.formatApiResponse(200, res);
-};
+    await meta.configs.set(req.params.setting, req.body.value)
+    helpers.formatApiResponse(200, res)
+}
 
 Admin.getAnalyticsKeys = async (req, res) => {
-    let keys = await analytics.getKeys();
+    let keys = await analytics.getKeys()
 
     // Sort keys alphabetically
-    keys = keys.sort((a, b) => (a < b ? -1 : 1));
+    keys = keys.sort((a, b) => (a < b ? -1 : 1))
 
-    helpers.formatApiResponse(200, res, { keys });
-};
+    helpers.formatApiResponse(200, res, { keys })
+}
 
 Admin.getAnalyticsData = async (req, res) => {
     // Default returns views from past 24 hours, by hour
     if (!req.query.amount) {
-        if (req.query.units === "days") {
-            req.query.amount = 30;
+        if (req.query.units === 'days') {
+            req.query.amount = 30
         } else {
-            req.query.amount = 24;
+            req.query.amount = 24
         }
     }
     const getStats =
-        req.query.units === "days"
+        req.query.units === 'days'
             ? analytics.getDailyStatsForSet
-            : analytics.getHourlyStatsForSet;
+            : analytics.getHourlyStatsForSet
     helpers.formatApiResponse(
         200,
         res,
@@ -49,5 +49,5 @@ Admin.getAnalyticsData = async (req, res) => {
             parseInt(req.query.until, 10) || Date.now(),
             req.query.amount
         )
-    );
-};
+    )
+}

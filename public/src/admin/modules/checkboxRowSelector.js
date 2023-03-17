@@ -1,56 +1,56 @@
-"use strict";
+'use strict'
 
-define("admin/modules/checkboxRowSelector", function () {
-    const self = {};
-    let $tableContainer;
+define('admin/modules/checkboxRowSelector', function () {
+    const self = {}
+    let $tableContainer
 
-    self.toggling = false;
+    self.toggling = false
 
     self.init = function (tableCssSelector) {
-        $tableContainer = $(tableCssSelector);
-        $tableContainer.on("change", "input.checkbox-helper", handleChange);
-    };
+        $tableContainer = $(tableCssSelector)
+        $tableContainer.on('change', 'input.checkbox-helper', handleChange)
+    }
 
     self.updateAll = function () {
-        $tableContainer.find("input.checkbox-helper").each((idx, el) => {
-            self.updateState($(el));
-        });
-    };
+        $tableContainer.find('input.checkbox-helper').each((idx, el) => {
+            self.updateState($(el))
+        })
+    }
 
     self.updateState = function ($checkboxEl) {
         if (self.toggling) {
-            return;
+            return
         }
         const checkboxes = $checkboxEl
-            .closest("tr")
-            .find("input:not([disabled]):visible")
-            .toArray();
-        const $toggler = $(checkboxes.shift());
+            .closest('tr')
+            .find('input:not([disabled]):visible')
+            .toArray()
+        const $toggler = $(checkboxes.shift())
         const rowState =
-            checkboxes.length && checkboxes.every((el) => el.checked);
-        $toggler.prop("checked", rowState);
-    };
+            checkboxes.length && checkboxes.every((el) => el.checked)
+        $toggler.prop('checked', rowState)
+    }
 
     function handleChange(ev) {
-        const $checkboxEl = $(ev.target);
-        toggleAll($checkboxEl);
+        const $checkboxEl = $(ev.target)
+        toggleAll($checkboxEl)
     }
 
     function toggleAll($checkboxEl) {
-        self.toggling = true;
-        const state = $checkboxEl.prop("checked");
+        self.toggling = true
+        const state = $checkboxEl.prop('checked')
         $checkboxEl
-            .closest("tr")
-            .find("input:not(.checkbox-helper):visible")
+            .closest('tr')
+            .find('input:not(.checkbox-helper):visible')
             .each((idx, el) => {
-                const $checkbox = $(el);
-                if ($checkbox.prop("checked") === state) {
-                    return;
+                const $checkbox = $(el)
+                if ($checkbox.prop('checked') === state) {
+                    return
                 }
-                $checkbox.click();
-            });
-        self.toggling = false;
+                $checkbox.click()
+            })
+        self.toggling = false
     }
 
-    return self;
-});
+    return self
+})

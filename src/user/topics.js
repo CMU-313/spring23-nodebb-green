@@ -1,6 +1,6 @@
-"use strict";
+'use strict'
 
-const db = require("../database");
+const db = require('../database')
 
 module.exports = function (User) {
     User.getIgnoredTids = async function (uid, start, stop) {
@@ -8,13 +8,13 @@ module.exports = function (User) {
             `uid:${uid}:ignored_tids`,
             start,
             stop
-        );
-    };
+        )
+    }
 
     User.addTopicIdToUser = async function (uid, tid, timestamp) {
         await Promise.all([
             db.sortedSetAdd(`uid:${uid}:topics`, timestamp, tid),
-            User.incrementUserFieldBy(uid, "topiccount", 1),
-        ]);
-    };
-};
+            User.incrementUserFieldBy(uid, 'topiccount', 1),
+        ])
+    }
+}

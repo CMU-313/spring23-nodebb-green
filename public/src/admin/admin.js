@@ -1,66 +1,66 @@
-"use strict";
+'use strict'
 
-require("../app");
+require('../app')
 
 // scripts-admin.js contains javascript files
 // from plugins that add files to "acpScripts" block in plugin.json
 // eslint-disable-next-line import/no-unresolved
-require("../../scripts-admin");
+require('../../scripts-admin')
 
-app.onDomReady();
+app.onDomReady()
 
-(function () {
-    let logoutTimer = 0;
-    let logoutMessage;
+;(function () {
+    let logoutTimer = 0
+    let logoutMessage
     function startLogoutTimer() {
         if (app.config.adminReloginDuration <= 0) {
-            return;
+            return
         }
         if (logoutTimer) {
-            clearTimeout(logoutTimer);
+            clearTimeout(logoutTimer)
         }
         // pre-translate language string gh#9046
         if (!logoutMessage) {
-            require(["translator"], function (translator) {
+            require(['translator'], function (translator) {
                 translator.translate(
-                    "[[login:logged-out-due-to-inactivity]]",
+                    '[[login:logged-out-due-to-inactivity]]',
                     function (translated) {
-                        logoutMessage = translated;
+                        logoutMessage = translated
                     }
-                );
-            });
+                )
+            })
         }
 
         logoutTimer = setTimeout(function () {
-            require(["bootbox"], function (bootbox) {
+            require(['bootbox'], function (bootbox) {
                 bootbox.alert({
                     closeButton: false,
                     message: logoutMessage,
                     callback: function () {
-                        window.location.reload();
+                        window.location.reload()
                     },
-                });
-            });
-        }, 3600000);
+                })
+            })
+        }, 3600000)
     }
 
-    require(["hooks"], (hooks) => {
-        hooks.on("action:ajaxify.end", () => {
-            showCorrectNavTab();
-            startLogoutTimer();
-            if ($(".settings").length) {
-                require(["admin/settings"], function (Settings) {
-                    Settings.prepare();
-                    Settings.populateTOC();
-                });
+    require(['hooks'], (hooks) => {
+        hooks.on('action:ajaxify.end', () => {
+            showCorrectNavTab()
+            startLogoutTimer()
+            if ($('.settings').length) {
+                require(['admin/settings'], function (Settings) {
+                    Settings.prepare()
+                    Settings.populateTOC()
+                })
             }
-        });
-    });
+        })
+    })
 
     function showCorrectNavTab() {
         // show correct tab if url has #
         if (window.location.hash) {
-            $('.nav-pills a[href="' + window.location.hash + '"]').tab("show");
+            $('.nav-pills a[href="' + window.location.hash + '"]').tab('show')
         }
     }
 
@@ -70,118 +70,118 @@ app.onDomReady();
                 navigator.userAgent
             )
         ) {
-            require(["admin/modules/search"], function (search) {
-                search.init();
-            });
+            require(['admin/modules/search'], function (search) {
+                search.init()
+            })
         }
 
-        $('[component="logout"]').on("click", function () {
-            require(["logout"], function (logout) {
-                logout();
-            });
-            return false;
-        });
+        $('[component="logout"]').on('click', function () {
+            require(['logout'], function (logout) {
+                logout()
+            })
+            return false
+        })
 
-        configureSlidemenu();
-        setupNProgress();
-    });
+        configureSlidemenu()
+        setupNProgress()
+    })
 
-    $(window).on("action:ajaxify.contentLoaded", function (ev, data) {
-        selectMenuItem(data.url);
-        setupRestartLinks();
-        require("material-design-lite");
-        componentHandler.upgradeDom();
-    });
+    $(window).on('action:ajaxify.contentLoaded', function (ev, data) {
+        selectMenuItem(data.url)
+        setupRestartLinks()
+        require('material-design-lite')
+        componentHandler.upgradeDom()
+    })
 
     function setupNProgress() {
-        require(["nprogress", "hooks"], function (NProgress, hooks) {
-            $(window).on("action:ajaxify.start", function () {
-                NProgress.set(0.7);
-            });
+        require(['nprogress', 'hooks'], function (NProgress, hooks) {
+            $(window).on('action:ajaxify.start', function () {
+                NProgress.set(0.7)
+            })
 
-            hooks.on("action:ajaxify.end", function () {
-                NProgress.done();
-            });
-        });
+            hooks.on('action:ajaxify.end', function () {
+                NProgress.done()
+            })
+        })
     }
 
     function selectMenuItem(url) {
-        require(["translator"], function (translator) {
+        require(['translator'], function (translator) {
             url = url
-                .replace(/\/\d+$/, "")
-                .split("/")
+                .replace(/\/\d+$/, '')
+                .split('/')
                 .slice(0, 3)
-                .join("/")
+                .join('/')
                 .split(/[?#]/)[0]
-                .replace(/(\/+$)|(^\/+)/, "");
+                .replace(/(\/+$)|(^\/+)/, '')
 
             // If index is requested, load the dashboard
-            if (url === "admin") {
-                url = "admin/dashboard";
+            if (url === 'admin') {
+                url = 'admin/dashboard'
             }
 
-            url = [config.relative_path, url].join("/");
-            let fallback;
+            url = [config.relative_path, url].join('/')
+            let fallback
 
-            $("#main-menu li").removeClass("active");
-            $("#main-menu a")
-                .removeClass("active")
+            $('#main-menu li').removeClass('active')
+            $('#main-menu a')
+                .removeClass('active')
                 .filter('[href="' + url + '"]')
                 .each(function () {
-                    const menu = $(this);
-                    if (menu.parent().attr("data-link")) {
-                        return;
+                    const menu = $(this)
+                    if (menu.parent().attr('data-link')) {
+                        return
                     }
 
                     menu.parent()
-                        .addClass("active")
-                        .parents(".menu-item")
-                        .addClass("active");
-                    fallback = menu.text();
-                });
+                        .addClass('active')
+                        .parents('.menu-item')
+                        .addClass('active')
+                    fallback = menu.text()
+                })
 
-            let mainTitle;
-            let pageTitle;
+            let mainTitle
+            let pageTitle
             if (/admin\/plugins\//.test(url)) {
-                mainTitle = fallback;
-                pageTitle = "[[admin/menu:section-plugins]] > " + mainTitle;
+                mainTitle = fallback
+                pageTitle = '[[admin/menu:section-plugins]] > ' + mainTitle
             } else {
-                const matches = url.match(/admin\/(.+?)\/(.+?)$/);
+                const matches = url.match(/admin\/(.+?)\/(.+?)$/)
                 if (matches) {
                     mainTitle =
-                        "[[admin/menu:" + matches[1] + "/" + matches[2] + "]]";
+                        '[[admin/menu:' + matches[1] + '/' + matches[2] + ']]'
                     pageTitle =
-                        "[[admin/menu:section-" +
-                        (matches[1] === "development"
-                            ? "advanced"
+                        '[[admin/menu:section-' +
+                        (matches[1] === 'development'
+                            ? 'advanced'
                             : matches[1]) +
-                        "]]" +
-                        (matches[2] ? " > " + mainTitle : "");
-                    if (matches[2] === "settings") {
+                        ']]' +
+                        (matches[2] ? ' > ' + mainTitle : '')
+                    if (matches[2] === 'settings') {
                         mainTitle = translator.compile(
-                            "admin/menu:settings.page-title",
+                            'admin/menu:settings.page-title',
                             mainTitle
-                        );
+                        )
                     }
                 } else {
-                    mainTitle = "[[admin/menu:section-dashboard]]";
-                    pageTitle = "[[admin/menu:section-dashboard]]";
+                    mainTitle = '[[admin/menu:section-dashboard]]'
+                    pageTitle = '[[admin/menu:section-dashboard]]'
                 }
             }
 
-            pageTitle = translator.compile("admin/admin:acp-title", pageTitle);
+            pageTitle = translator.compile('admin/admin:acp-title', pageTitle)
 
             translator.translate(pageTitle, function (title) {
-                document.title = title.replace(/&gt;/g, ">");
-            });
+                document.title = title.replace(/&gt;/g, '>')
+            })
             translator.translate(mainTitle, function (text) {
-                $("#main-page-title").text(text);
-            });
-        });
+                $('#main-page-title').text(text)
+            })
+        })
     }
 
     function setupRestartLinks() {
-        require(["benchpress", "bootbox", "admin/modules/instance"], function (
+        require(['benchpress', 'bootbox', 'admin/modules/instance'], function (
             benchpress,
             bootbox,
             instance
@@ -189,92 +189,92 @@ app.onDomReady();
             // need to preload the compiled alert template
             // otherwise it can be unloaded when rebuild & restart is run
             // the client can't fetch the template file, resulting in an error
-            benchpress.render("alert", {}).then(function () {
-                $(".rebuild-and-restart")
-                    .off("click")
-                    .on("click", function () {
+            benchpress.render('alert', {}).then(function () {
+                $('.rebuild-and-restart')
+                    .off('click')
+                    .on('click', function () {
                         bootbox.confirm(
-                            "[[admin/admin:alert.confirm-rebuild-and-restart]]",
+                            '[[admin/admin:alert.confirm-rebuild-and-restart]]',
                             function (confirm) {
                                 if (confirm) {
-                                    instance.rebuildAndRestart();
+                                    instance.rebuildAndRestart()
                                 }
                             }
-                        );
-                    });
+                        )
+                    })
 
-                $(".restart")
-                    .off("click")
-                    .on("click", function () {
+                $('.restart')
+                    .off('click')
+                    .on('click', function () {
                         bootbox.confirm(
-                            "[[admin/admin:alert.confirm-restart]]",
+                            '[[admin/admin:alert.confirm-restart]]',
                             function (confirm) {
                                 if (confirm) {
-                                    instance.restart();
+                                    instance.restart()
                                 }
                             }
-                        );
-                    });
-            });
-        });
+                        )
+                    })
+            })
+        })
     }
 
     function configureSlidemenu() {
-        require(["slideout"], function (Slideout) {
-            let env = utils.findBootstrapEnvironment();
+        require(['slideout'], function (Slideout) {
+            let env = utils.findBootstrapEnvironment()
 
             const slideout = new Slideout({
-                panel: document.getElementById("panel"),
-                menu: document.getElementById("menu"),
+                panel: document.getElementById('panel'),
+                menu: document.getElementById('menu'),
                 padding: 256,
                 tolerance: 70,
-            });
+            })
 
-            if (env === "md" || env === "lg") {
-                slideout.disableTouch();
+            if (env === 'md' || env === 'lg') {
+                slideout.disableTouch()
             }
 
-            $("#mobile-menu").on("click", function () {
-                slideout.toggle();
-            });
+            $('#mobile-menu').on('click', function () {
+                slideout.toggle()
+            })
 
-            $("#menu a").on("click", function () {
-                slideout.close();
-            });
+            $('#menu a').on('click', function () {
+                slideout.close()
+            })
 
-            $(window).on("resize", function () {
-                slideout.close();
+            $(window).on('resize', function () {
+                slideout.close()
 
-                env = utils.findBootstrapEnvironment();
+                env = utils.findBootstrapEnvironment()
 
-                if (env === "md" || env === "lg") {
-                    slideout.disableTouch();
-                    $("#header").css({
-                        position: "relative",
-                    });
+                if (env === 'md' || env === 'lg') {
+                    slideout.disableTouch()
+                    $('#header').css({
+                        position: 'relative',
+                    })
                 } else {
-                    slideout.enableTouch();
-                    $("#header").css({
-                        position: "fixed",
-                    });
+                    slideout.enableTouch()
+                    $('#header').css({
+                        position: 'fixed',
+                    })
                 }
-            });
+            })
 
             function onOpeningMenu() {
-                $("#header").css({
-                    top: $("#panel").position().top * -1 + "px",
-                    position: "absolute",
-                });
+                $('#header').css({
+                    top: $('#panel').position().top * -1 + 'px',
+                    position: 'absolute',
+                })
             }
 
-            slideout.on("open", onOpeningMenu);
+            slideout.on('open', onOpeningMenu)
 
-            slideout.on("close", function () {
-                $("#header").css({
-                    top: "0px",
-                    position: "fixed",
-                });
-            });
-        });
+            slideout.on('close', function () {
+                $('#header').css({
+                    top: '0px',
+                    position: 'fixed',
+                })
+            })
+        })
     }
-})();
+})()

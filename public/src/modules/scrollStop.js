@@ -1,4 +1,4 @@
-"use strict";
+'use strict'
 
 /*
     The point of this library is to enhance(tm) a textarea so that if scrolled,
@@ -8,26 +8,26 @@
     While I'm here, might I say this is a solved issue on Linux?
 */
 
-define("scrollStop", function () {
-    const Module = {};
+define('scrollStop', function () {
+    const Module = {}
 
     Module.apply = function (element) {
-        $(element).on("mousewheel", function (e) {
-            const scrollTop = this.scrollTop;
-            const scrollHeight = this.scrollHeight;
+        $(element).on('mousewheel', function (e) {
+            const scrollTop = this.scrollTop
+            const scrollHeight = this.scrollHeight
             const elementHeight = Math.round(
                 this.getBoundingClientRect().height
-            );
+            )
 
             if (
                 (e.originalEvent.deltaY < 0 && scrollTop === 0) || // scroll up
                 (e.originalEvent.deltaY > 0 &&
                     elementHeight + scrollTop >= scrollHeight) // scroll down
             ) {
-                return false;
+                return false
             }
-        });
-    };
+        })
+    }
 
-    return Module;
-});
+    return Module
+})

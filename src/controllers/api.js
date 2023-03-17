@@ -1,26 +1,26 @@
-"use strict";
+'use strict'
 
-const validator = require("validator");
-const nconf = require("nconf");
+const validator = require('validator')
+const nconf = require('nconf')
 
-const meta = require("../meta");
-const user = require("../user");
-const categories = require("../categories");
-const plugins = require("../plugins");
-const translator = require("../translator");
-const languages = require("../languages");
+const meta = require('../meta')
+const user = require('../user')
+const categories = require('../categories')
+const plugins = require('../plugins')
+const translator = require('../translator')
+const languages = require('../languages')
 
-const apiController = module.exports;
+const apiController = module.exports
 
-const relative_path = nconf.get("relative_path");
-const upload_url = nconf.get("upload_url");
-const asset_base_url = nconf.get("asset_base_url");
-const socketioTransports = nconf.get("socket.io:transports") || [
-    "polling",
-    "websocket",
-];
-const socketioOrigins = nconf.get("socket.io:origins");
-const websocketAddress = nconf.get("socket.io:address") || "";
+const relative_path = nconf.get('relative_path')
+const upload_url = nconf.get('upload_url')
+const asset_base_url = nconf.get('asset_base_url')
+const socketioTransports = nconf.get('socket.io:transports') || [
+    'polling',
+    'websocket',
+]
+const socketioOrigins = nconf.get('socket.io:origins')
+const websocketAddress = nconf.get('socket.io:address') || ''
 
 apiController.loadConfig = async function (req) {
     const config = {
@@ -29,14 +29,14 @@ apiController.loadConfig = async function (req) {
         asset_base_url,
         assetBaseUrl: asset_base_url, // deprecate in 1.20.x
         siteTitle: validator.escape(
-            String(meta.config.title || meta.config.browserTitle || "NodeBB")
+            String(meta.config.title || meta.config.browserTitle || 'NodeBB')
         ),
         browserTitle: validator.escape(
-            String(meta.config.browserTitle || meta.config.title || "NodeBB")
+            String(meta.config.browserTitle || meta.config.title || 'NodeBB')
         ),
-        titleLayout: (meta.config.titleLayout || "{pageTitle} | {browserTitle}")
-            .replace(/{/g, "&#123;")
-            .replace(/}/g, "&#125;"),
+        titleLayout: (meta.config.titleLayout || '{pageTitle} | {browserTitle}')
+            .replace(/{/g, '&#123;')
+            .replace(/}/g, '&#125;'),
         showSiteTitle: meta.config.showSiteTitle === 1,
         maintenanceMode: meta.config.maintenanceMode === 1,
         minimumTitleLength: meta.config.minimumTitleLength,
@@ -51,7 +51,7 @@ apiController.loadConfig = async function (req) {
         useOutgoingLinksPage: meta.config.useOutgoingLinksPage === 1,
         outgoingLinksWhitelist:
             meta.config.useOutgoingLinksPage === 1
-                ? meta.config["outgoingLinks:whitelist"]
+                ? meta.config['outgoingLinks:whitelist']
                 : undefined,
         allowGuestHandles: meta.config.allowGuestHandles === 1,
         allowTopicsThumbnail: meta.config.allowTopicsThumbnail === 1,
@@ -67,24 +67,24 @@ apiController.loadConfig = async function (req) {
         topicsPerPage: meta.config.topicsPerPage || 20,
         postsPerPage: meta.config.postsPerPage || 20,
         maximumFileSize: meta.config.maximumFileSize,
-        "theme:id": meta.config["theme:id"],
-        "theme:src": meta.config["theme:src"],
-        defaultLang: meta.config.defaultLang || "en-GB",
+        'theme:id': meta.config['theme:id'],
+        'theme:src': meta.config['theme:src'],
+        defaultLang: meta.config.defaultLang || 'en-GB',
         userLang: req.query.lang
             ? validator.escape(String(req.query.lang))
-            : meta.config.defaultLang || "en-GB",
+            : meta.config.defaultLang || 'en-GB',
         loggedIn: !!req.user,
         uid: req.uid,
-        "cache-buster": meta.config["cache-buster"] || "",
-        topicPostSort: meta.config.topicPostSort || "oldest_to_newest",
-        categoryTopicSort: meta.config.categoryTopicSort || "newest_to_oldest",
+        'cache-buster': meta.config['cache-buster'] || '',
+        topicPostSort: meta.config.topicPostSort || 'oldest_to_newest',
+        categoryTopicSort: meta.config.categoryTopicSort || 'newest_to_oldest',
         csrf_token: req.uid >= 0 && req.csrfToken && req.csrfToken(),
-        searchEnabled: plugins.hooks.hasListeners("filter:search.query"),
-        searchDefaultInQuick: meta.config.searchDefaultInQuick || "titles",
-        bootswatchSkin: meta.config.bootswatchSkin || "",
+        searchEnabled: plugins.hooks.hasListeners('filter:search.query'),
+        searchDefaultInQuick: meta.config.searchDefaultInQuick || 'titles',
+        bootswatchSkin: meta.config.bootswatchSkin || '',
         enablePostHistory: meta.config.enablePostHistory === 1,
         timeagoCutoff:
-            meta.config.timeagoCutoff !== ""
+            meta.config.timeagoCutoff !== ''
                 ? Math.max(0, parseInt(meta.config.timeagoCutoff, 10))
                 : meta.config.timeagoCutoff,
         timeagoCodes: languages.timeagoCodes,
@@ -94,34 +94,34 @@ apiController.loadConfig = async function (req) {
                 .escape(
                     validator.escape(
                         meta.config.cookieConsentMessage ||
-                            "[[global:cookies.message]]"
+                            '[[global:cookies.message]]'
                     )
                 )
-                .replace(/\\/g, "\\\\"),
+                .replace(/\\/g, '\\\\'),
             dismiss: translator
                 .escape(
                     validator.escape(
                         meta.config.cookieConsentDismiss ||
-                            "[[global:cookies.accept]]"
+                            '[[global:cookies.accept]]'
                     )
                 )
-                .replace(/\\/g, "\\\\"),
+                .replace(/\\/g, '\\\\'),
             link: translator
                 .escape(
                     validator.escape(
                         meta.config.cookieConsentLink ||
-                            "[[global:cookies.learn_more]]"
+                            '[[global:cookies.learn_more]]'
                     )
                 )
-                .replace(/\\/g, "\\\\"),
+                .replace(/\\/g, '\\\\'),
             link_url: translator
                 .escape(
                     validator.escape(
                         meta.config.cookieConsentLinkUrl ||
-                            "https://www.cookiesandyou.com"
+                            'https://www.cookiesandyou.com'
                     )
                 )
-                .replace(/\\/g, "\\\\"),
+                .replace(/\\/g, '\\\\'),
         },
         thumbs: {
             size: meta.config.topicThumbSize,
@@ -129,68 +129,68 @@ apiController.loadConfig = async function (req) {
         iconBackgrounds: await user.getIconBackgrounds(req.uid),
         emailPrompt: meta.config.emailPrompt,
         useragent: req.useragent,
-    };
+    }
 
-    let settings = config;
-    let isAdminOrGlobalMod;
+    let settings = config
+    let isAdminOrGlobalMod
     if (req.loggedIn) {
-        [settings, isAdminOrGlobalMod] = await Promise.all([
+        ;[settings, isAdminOrGlobalMod] = await Promise.all([
             user.getSettings(req.uid),
             user.isAdminOrGlobalMod(req.uid),
-        ]);
+        ])
     }
 
     // Handle old skin configs
-    const oldSkins = ["noskin", "default"];
+    const oldSkins = ['noskin', 'default']
     settings.bootswatchSkin = oldSkins.includes(settings.bootswatchSkin)
-        ? ""
-        : settings.bootswatchSkin;
+        ? ''
+        : settings.bootswatchSkin
 
-    config.usePagination = settings.usePagination;
-    config.topicsPerPage = settings.topicsPerPage;
-    config.postsPerPage = settings.postsPerPage;
+    config.usePagination = settings.usePagination
+    config.topicsPerPage = settings.topicsPerPage
+    config.postsPerPage = settings.postsPerPage
     config.userLang = validator.escape(
         String(
             (req.query.lang ? req.query.lang : null) ||
                 settings.userLang ||
                 config.defaultLang
         )
-    );
+    )
     config.acpLang = validator.escape(
         String((req.query.lang ? req.query.lang : null) || settings.acpLang)
-    );
-    config.openOutgoingLinksInNewTab = settings.openOutgoingLinksInNewTab;
-    config.topicPostSort = settings.topicPostSort || config.topicPostSort;
+    )
+    config.openOutgoingLinksInNewTab = settings.openOutgoingLinksInNewTab
+    config.topicPostSort = settings.topicPostSort || config.topicPostSort
     config.categoryTopicSort =
-        settings.categoryTopicSort || config.categoryTopicSort;
-    config.topicSearchEnabled = settings.topicSearchEnabled || false;
+        settings.categoryTopicSort || config.categoryTopicSort
+    config.topicSearchEnabled = settings.topicSearchEnabled || false
     config.bootswatchSkin =
         meta.config.disableCustomUserSkins !== 1 &&
         settings.bootswatchSkin &&
-        settings.bootswatchSkin !== ""
+        settings.bootswatchSkin !== ''
             ? settings.bootswatchSkin
-            : "";
+            : ''
 
     // Overrides based on privilege
     config.disableChatMessageEditing = isAdminOrGlobalMod
         ? false
-        : config.disableChatMessageEditing;
+        : config.disableChatMessageEditing
 
-    return await plugins.hooks.fire("filter:config.get", config);
-};
+    return await plugins.hooks.fire('filter:config.get', config)
+}
 
 apiController.getConfig = async function (req, res) {
-    const config = await apiController.loadConfig(req);
-    res.json(config);
-};
+    const config = await apiController.loadConfig(req)
+    res.json(config)
+}
 
 apiController.getModerators = async function (req, res) {
-    const moderators = await categories.getModerators(req.params.cid);
-    res.json({ moderators: moderators });
-};
+    const moderators = await categories.getModerators(req.params.cid)
+    res.json({ moderators: moderators })
+}
 
-require("../promisify")(apiController, [
-    "getConfig",
-    "getObject",
-    "getModerators",
-]);
+require('../promisify')(apiController, [
+    'getConfig',
+    'getObject',
+    'getModerators',
+])

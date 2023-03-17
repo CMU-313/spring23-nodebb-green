@@ -16,22 +16,22 @@ async function getPostSharing() {
     }
     let networks = [
         {
-            id: "facebook",
-            name: "Facebook",
-            class: "fa-facebook",
+            id: 'facebook',
+            name: 'Facebook',
+            class: 'fa-facebook',
             activated: null,
         },
         {
-            id: "twitter",
-            name: "Twitter",
-            class: "fa-twitter",
+            id: 'twitter',
+            name: 'Twitter',
+            class: 'fa-twitter',
             activated: null,
         },
     ];
-    networks = (await plugins_1.default.hooks.fire("filter:social.posts", networks));
+    networks = (await plugins_1.default.hooks.fire('filter:social.posts', networks));
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const activated = (await database_1.default.getSetMembers("social:posts.activated"));
+    const activated = (await database_1.default.getSetMembers('social:posts.activated'));
     networks.forEach((network) => {
         network.activated = activated.includes(network.id);
     });
@@ -48,12 +48,12 @@ async function setActivePostSharingNetworks(networkIDs) {
     postSharing = null;
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    await database_1.default.delete("social:posts.activated");
+    await database_1.default.delete('social:posts.activated');
     if (!networkIDs.length) {
         return;
     }
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    await database_1.default.setAdd("social:posts.activated", networkIDs);
+    await database_1.default.setAdd('social:posts.activated', networkIDs);
 }
 exports.setActivePostSharingNetworks = setActivePostSharingNetworks;
