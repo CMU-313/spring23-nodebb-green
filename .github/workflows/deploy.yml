@@ -11,9 +11,29 @@ on:
 jobs:
   deploy:
     name: Deploy app
+    
+    permissions:
+      checks: write  # for coverallsapp/github-action to create new checks
+      contents: read  # for actions/checkout to fetch code
+
+    strategy:
+      fail-fast: false
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - run: cp install/package.json package.json
+
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: NPM Install
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Setup on Redis
         env:
