@@ -8,11 +8,11 @@ ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
 
 COPY --chown=node:node install/package.json /usr/src/app/package.json
+COPY --chown=node:node install/db_config.json /usr/src/app/config.json
 
 USER node
 
-RUN cp install/db_config.json config.json && \
-    npm install --only=prod && \
+RUN npm install --only=prod && \
     npm run postinstall && \
     npm cache clean --force
 
