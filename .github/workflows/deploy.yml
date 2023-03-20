@@ -79,7 +79,7 @@ jobs:
         env:
           DB_CONFIG: ${{ secrets.DB_CONFIG }}
         run: |
-          echo '${DB_CONFIG}' > install/db_config.json
+          echo ${DB_CONFIG} > install/db_config.json
 
       - run: flyctl deploy --remote-only
         env:
