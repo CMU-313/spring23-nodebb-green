@@ -74,7 +74,10 @@ jobs:
             }
         run: |
           node app --setup="${SETUP}" --ci="${CI}"
-      - run: echo '${{ secrets.DB_CONFIG }}' > install/db_config.json
+      - run: echo '$DB_CONFIG' > install/db_config.json
+        env:
+          DB_CONFIG: ${{ secrets.DB_CONFIG }}
+          
       - run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
