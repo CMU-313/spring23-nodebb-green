@@ -15,6 +15,31 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Setup on Redis
+        env:
+          SETUP: >-
+            {
+              "url": "http://nodebb-green.fly.dev",
+              "secret": "abcdef",
+              "admin:username": "admin",
+              "admin:email": "test@example.org",
+              "admin:password": "hAN3Eg8W",
+              "admin:password:confirm": "hAN3Eg8W",
+
+              "database": "redis",
+              "redis:host": "fly-nodebb-green-redis.upstash.io",
+              "redis:port": 6379,
+              "redis:password": "d0aaa4745c594d8d8c08fbf44c11c263",
+              "redis:database": 0
+            }
+          CI: >-
+            {
+              "host": "fly-nodebb-green-redis.upstash.io",
+              "database": 0,
+              "port": 6379
+            }
+        run: |
+          node app --setup="${SETUP}" --ci="${CI}"
       - run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

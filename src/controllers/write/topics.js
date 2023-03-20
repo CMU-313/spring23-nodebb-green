@@ -80,8 +80,6 @@ async function resolveTopic(tid, uid) {
     if (!topicData || !topicData.cid) {
         throw new Error('[[error:no-topic]]');
     }
-    // The next line calls a function in a module that has not been updated to TS yet
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const isOwnerOrAdminOrMod = await privileges_1.default.topics.isOwnerOrAdminOrMod(tid, uid);
     if (!isOwnerOrAdminOrMod) {
         throw new Error('[[error:no-privileges]]');
