@@ -8,7 +8,7 @@ ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
 
 COPY --chown=node:node install/package.json /usr/src/app/package.json
-# COPY --chown=node:node install/db_config.json /usr/src/app/config.json
+COPY --chown=node:node install/db_config.json /usr/src/app/config.json
 
 USER node
 
@@ -24,4 +24,4 @@ ENV NODE_ENV=production \
 
 EXPOSE 4567
 
-CMD test -n "${SETUP}" && ./nodebb setup || node ./nodebb start
+CMD test -n "${SETUP}" && ./nodebb setup || node ./nodebb build; node ./nodebb start
