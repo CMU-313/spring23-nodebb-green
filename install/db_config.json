@@ -1,0 +1,12 @@
+{
+  "url": "http://nodebb-green.fly.dev",
+  "secret": "eefeaa02-d679-4b78-8056-eeddaa57c51e",
+  "database": "redis",
+  "port": "4567",
+  "redis": {
+      "host": "fly-nodebb-green-redis.upstash.io",
+      "port": "6379",
+      "password": "d0aaa4745c594d8d8c08fbf44c11c263",
+      "database": "0"
+  }
+}
