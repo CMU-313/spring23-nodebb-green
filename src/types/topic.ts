@@ -4,7 +4,7 @@ import { UserObjectSlim } from './user';
 import { PostObjectPartial } from './post';
 
 export type TopicObject =
-    TopicObjectSlim & TopicObjectCoreProperties & TopicObjectOptionalProperties;
+  TopicObjectSlim & TopicObjectCoreProperties & TopicObjectOptionalProperties;
 
 export type TopicObjectCoreProperties = {
   lastposttime: number;
@@ -83,6 +83,8 @@ export type TopicSlimProperties = {
   titleRaw: string;
   locked: string;
   pinned: number;
+  resolve: boolean;
+  privateTopic: boolean;
   timestamp: string;
   timestampISO: number;
   lastposttime: string;

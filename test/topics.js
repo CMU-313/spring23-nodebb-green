@@ -672,7 +672,7 @@ describe('Topic\'s', () => {
         });
 
         it('should delete the topic', async () => {
-            await apiTopics.delete({ uid: adminUid }, { tids: [newTopic.tid], cid: categoryObj.cid });
+            await apiTopics.del({ uid: adminUid }, { tids: [newTopic.tid], cid: categoryObj.cid });
             const deleted = await topics.getTopicField(newTopic.tid, 'deleted');
             assert.strictEqual(deleted, 1);
         });
@@ -877,7 +877,7 @@ describe('Topic\'s', () => {
                 content: 'topic content',
                 cid: categoryObj.cid,
             });
-            await apiTopics.delete({ uid: adminUid }, { tids: [result.topicData.tid], cid: categoryObj.cid });
+            await apiTopics.del({ uid: adminUid }, { tids: [result.topicData.tid], cid: categoryObj.cid });
             try {
                 await apiTopics.restore({ uid: fooUid }, { tids: [result.topicData.tid], cid: categoryObj.cid });
             } catch (err) {
