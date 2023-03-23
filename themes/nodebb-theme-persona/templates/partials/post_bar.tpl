@@ -17,9 +17,9 @@
     <!-- IMPORT partials/thread_tools.tpl -->
     </div>
     <!-- IF privileges.resolveable -->
-    <button component="topic/resolve" class="btn btn-sm btn-default" type="button">
-        Resolve
-    </button>
+    <button component="topic/resolve" class="btn btn-sm btn-default" type="button" {{{if resolve}}}disabled{{{end}}}>
+        {{{if resolve}}}Resolved{{{else}}}Resolve{{{end}}}
+    </button> 
     <!-- ENDIF privileges.resolveable -->
     <!-- IMPORT partials/topic/reply-button.tpl -->
 </div>
