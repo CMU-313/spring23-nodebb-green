@@ -32,6 +32,7 @@ Write.reload = async (params) => {
         next();
     });
 
+    router.use('/api/v3/career', require('./career')());
     router.use('/api/v3/users', require('./users')());
     router.use('/api/v3/groups', require('./groups')());
     router.use('/api/v3/categories', require('./categories')());
