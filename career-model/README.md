@@ -24,6 +24,12 @@ Example CURL request:
 curl --header "Content-Type: application/json" --request POST --data '{"Student ID":"123", "Gender":"F", "Age":"21", "Major":"Computer Science", "GPA":"3.8", "Extra Curricular":"Student Theatre", "Num Programming Languages":"2", "Num Past Internships":"1"}' http://localhost:5000/predict
 ```
 
+## Updating NodeBB to call the endpoint
+To integrate this endoint into NodeBB, you will need to update (this file)[https://github.com/CMU-313/spring23-nodebb-green/blob/career-model-implementation/src/controllers/write/career.js].
+
+First, you must create an (HTTP request)[https://www.geeksforgeeks.org/how-to-make-http-requests-in-node-js/] to call http://localhost:5000/predict, with userCareerData as the body. 
+
+Then, you should set `userCareer.prediction` to the value of the response.
 ## Running the Model
 The file `predict.py` contains a function `predict` which, given a student application input, returns a prediction whether the student would be a good employee. 
 
