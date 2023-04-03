@@ -2,6 +2,9 @@ import pandas as pd
 import joblib
 from pydantic import BaseModel, Field
 from pydantic.tools import parse_obj_as
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
 
 # Pydantic Models
 class Student(BaseModel):
@@ -46,6 +49,20 @@ def predict(student):
     
     student = student.dict(by_alias=True)
     query = pd.DataFrame(student, index=[0])
+    print(query)
     prediction = clf.predict(query) # TODO: Error handling ??
 
     return { 'good_employee': prediction[0] }
+
+# Flask Endpoint
+@app.route('/predict', methods=['POST'])
+def predict_endpoint():
+    # Parse request body as Student object
+    student = request.get_json()
+    prediction_result = predict(student)
+
+    # Return prediction as JSON response
+    return jsonify({"res": str(prediction_result['good_employee'])})
+
+if __name__ == '__main__':
+    app.run()
