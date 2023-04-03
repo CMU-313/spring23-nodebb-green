@@ -9,6 +9,21 @@ This model should eventually be connected with the career page within NodeBB to 
 1. (Optional) Set up a [virtual environment](https://docs.python.org/3/library/venv.html) for Python
 2. Run `pip install -r requirements.txt` to install all dependencies
 
+## Running the Flask endoint
+1. Ensure previous steps from the Setup section have been run
+2. Run the following in your terminal:
+  ```
+  export FLASK_APP=predict.py
+  export FLASK_ENV=development
+  flask run
+  ```
+3. Query the endpoint through a CURL request or Postman to test it.
+
+Example CURL request:
+```
+curl --header "Content-Type: application/json" --request POST --data '{"Student ID":"123", "Gender":"F", "Age":"21", "Major":"Computer Science", "GPA":"3.8", "Extra Curricular":"Student Theatre", "Num Programming Languages":"2", "Num Past Internships":"1"}' http://localhost:5000/predict
+```
+
 ## Running the Model
 The file `predict.py` contains a function `predict` which, given a student application input, returns a prediction whether the student would be a good employee. 
 
