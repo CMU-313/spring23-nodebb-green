@@ -29,7 +29,7 @@ To integrate this endoint into NodeBB, you will need to update [this file](https
 
 First, you must create an [HTTP request](https://www.geeksforgeeks.org/how-to-make-http-requests-in-node-js/) to call http://localhost:5000/predict, with userCareerData as the body. 
 
-Then, you should set `userCareer.prediction` to the value of the response.
+Then, you should set `userCareer.prediction` to the value of the response (replacing the current `Math.random` value).
 ## Running the Model
 The file `predict.py` contains a function `predict` which, given a student application input, returns a prediction whether the student would be a good employee. 
 
