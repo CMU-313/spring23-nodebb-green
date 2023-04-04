@@ -25,6 +25,7 @@ dump.rdb
 logs/
 
 pidfile
+/lib/
 
 # templates
 /public/templates
