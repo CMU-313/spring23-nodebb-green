@@ -65,4 +65,4 @@ def predict_endpoint():
     return jsonify({"res": str(prediction_result['good_employee'])})
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5001)
