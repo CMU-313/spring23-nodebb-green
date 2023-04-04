@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    environment:
+      FLASK_APP: predict.py
+      FLASK_ENV: development
+    ports:
+      - "8080:5001"
