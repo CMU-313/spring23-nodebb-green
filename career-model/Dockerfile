@@ -1,8 +1,10 @@
-FROM python:3.9-slim-buster
+FROM python:3.9
 
-COPY requirements.txt .
+WORKDIR /
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./requirements.txt requirements.txt
+
+RUN pip install -r requirements.txt
 
 COPY . .
 
@@ -11,8 +13,8 @@ ENV FLASK_APP=predict.py
 ENV FLASK_ENV=production
 
 # Expose port 8080
+# EXPOSE 8080
 EXPOSE 8080
-EXPOSE 5001
 
 # Start the Flask app
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "predict:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "predict:app"]
