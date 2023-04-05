@@ -3,6 +3,7 @@
 const helpers = require('../helpers');
 const user = require('../../user');
 const db = require('../../database');
+const http = require('http');
 
 const Career = module.exports;
 
@@ -21,7 +22,38 @@ Career.register = async (req, res) => {
         };
         // TODO: Change this line to do call and retrieve actual
         // candidate success prediction from the model instead of using a random number
-        userCareerData.prediction = Math.round(Math.random());
+
+        // Importing https module
+        // const http = require('http');
+  
+        // Setting the configuration for
+        // the request
+        const options = {
+            hostname: 'https://nodebb-green-career.fly.dev/predict',
+            path: '/posts',
+            method: 'GET'
+        };
+    
+        // Sending the request
+        const req = http.request(options, (res) => {
+            let data = userCareerData
+     
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+    
+            // Ending the response 
+            res.on('end', () => {
+                console.log('Body:', JSON.parse(data))
+            });
+       
+        }).on("error", (err) => {
+            console.log("Error: ", err)
+        }).end()
+
+        console.log("statusCode:", res.statusCode);
+
+        userCareerData.prediction = chunk;
 
         await user.setCareerData(req.uid, userCareerData);
         db.sortedSetAdd('users:career', req.uid, req.uid);
