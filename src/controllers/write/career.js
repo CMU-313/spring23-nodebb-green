@@ -1,10 +1,9 @@
 'use strict';
 
+const fetch = require('node-fetch');
 const helpers = require('../helpers');
 const user = require('../../user');
 const db = require('../../database');
-const http = require('http');
-const fetch = require('node-fetch');
 
 const Career = module.exports;
 
@@ -27,7 +26,7 @@ Career.register = async (req, res) => {
         const response = await fetch('https://nodebb-green-career.fly.dev/predict', {
             method: 'post',
             body: JSON.stringify(userCareerData),
-            headers: {'Content-Type': 'application/json'}
+            headers: { 'Content-Type': 'application/json' },
         });
         const data = await response.json();
         console.log(data);
