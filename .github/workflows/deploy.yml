@@ -31,7 +31,7 @@ jobs:
         ports:
           # Maps port 6379 on service container to the host
           - 6379:6379
-
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
