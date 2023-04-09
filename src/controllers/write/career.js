@@ -20,22 +20,24 @@ Career.register = async (req, res) => {
             num_programming_languages: userData.num_programming_languages,
             num_past_internships: userData.num_past_internships,
         };
-        // TODO: Change this line to do call and retrieve actual
-        // candidate success prediction from the model instead of using a random number
+        try {
+            const response = await fetch('https://nodebb-green-career.fly.dev/predict', {
+                method: 'post',
+                body: JSON.stringify(userCareerData),
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await response.json();
+            console.log(data);
 
-        const response = await fetch('https://nodebb-green-career.fly.dev/predict', {
-            method: 'post',
-            body: JSON.stringify(userCareerData),
-            headers: { 'Content-Type': 'application/json' },
-        });
-        const data = await response.json();
-        console.log(data);
+            userCareerData.prediction = data.res;
 
-        userCareerData.prediction = data.res;
-
-        await user.setCareerData(req.uid, userCareerData);
-        db.sortedSetAdd('users:career', req.uid, req.uid);
-        res.json({});
+            await user.setCareerData(req.uid, userCareerData);
+            db.sortedSetAdd('users:career', req.uid, req.uid);
+        } catch (err) {
+            console.log(err);
+        } finally {
+            res.json({});
+        }
     } catch (err) {
         console.log(err);
         helpers.noScriptErrors(req, res, err.message, 400);
