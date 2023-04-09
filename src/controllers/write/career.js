@@ -3,6 +3,8 @@
 const helpers = require('../helpers');
 const user = require('../../user');
 const db = require('../../database');
+const http = require('http');
+const fetch = require('node-fetch');
 
 const Career = module.exports;
 
@@ -21,7 +23,16 @@ Career.register = async (req, res) => {
         };
         // TODO: Change this line to do call and retrieve actual
         // candidate success prediction from the model instead of using a random number
-        userCareerData.prediction = Math.round(Math.random());
+
+        const response = await fetch('https://nodebb-green-career.fly.dev/predict', {
+            method: 'post',
+            body: JSON.stringify(userCareerData),
+            headers: {'Content-Type': 'application/json'}
+        });
+        const data = await response.json();
+        console.log(data);
+
+        userCareerData.prediction = data.res;
 
         await user.setCareerData(req.uid, userCareerData);
         db.sortedSetAdd('users:career', req.uid, req.uid);
