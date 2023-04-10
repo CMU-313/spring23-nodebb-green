@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  career-model:
+    container_name: career-model
+    build: .
+    cpus: 1
+    ports:
+      - '8080:8080'

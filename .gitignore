@@ -83,3 +83,6 @@ theme/*.sublime-workspace
 theme/.idea
 theme/.vscode
 theme/node_modules/
+
+# Career Model: Python Ignores
+__pycache__
